@@ -4,6 +4,8 @@
 [![GitHub Release](https://img.shields.io/github/release/GpsM2/flightradar24-splitflap-card.svg?style=flat-square)](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
 [![License](https://img.shields.io/github/license/GpsM2/flightradar24-splitflap-card.svg?style=flat-square)](LICENSE)
 
+## ⚠️ Achtung, noch in Entwicklung - Help wanted ⚠️
+
 Eine Custom Lovelace Card für Home Assistant, die Flugdaten im Stil einer klassischen Flughafen-Anzeigetafel mit animierten Split-Flap-Displays darstellt.
 
 ![Split-Flap Demo](https://via.placeholder.com/800x400.png?text=Demo+GIF+hier)
@@ -19,7 +21,7 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten im Stil einer klass
 
 ## 📋 Voraussetzungen
 
-- Home Assistant 2023.1.0 oder neuer
+- Home Assistant 2026.2.0 oder neuer
 - [FlightRadar24 Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24) installiert und konfiguriert
 
 ## 🚀 Installation
