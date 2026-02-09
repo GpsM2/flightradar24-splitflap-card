@@ -18,32 +18,7 @@ const translations = {
     early: "EARLY",
     departed: "DEPARTED",
     ontime: "ON TIME",
-    noFlights: "No flights available",
-    cardTitle: "FlightRadar24 Split-Flap Display",
-    entity: "Entity",
-    entityHelper: "Select a FlightRadar24 sensor entity",
-    title: "Title",
-    titleHelper: "Display title (leave empty for default)",
-    maxFlights: "Maximum Flights",
-    maxFlightsHelper: "Number of flights to display",
-    flipDuration: "Flip Duration (ms)",
-    flipDurationHelper: "Duration of the flip animation in milliseconds",
-    flipDelay: "Flip Delay (ms)",
-    flipDelayHelper: "Delay between individual character flips in milliseconds",
-    mode: "Sensor Mode",
-    modeHelper: "Auto-detect or manually set sensor type",
-    language: "Language",
-    languageHelper: "Display language",
-    visibleFields: "Visible Fields",
-    visibleFieldsHelper: "Select which information to display",
-    showTime: "Show Time",
-    showFlight: "Show Flight Number",
-    showFrom: "Show Origin",
-    showTo: "Show Destination",
-    showStatus: "Show Status",
-    showAircraft: "Show Aircraft Type",
-    showAltitude: "Show Altitude",
-    showSpeed: "Show Speed"
+    noFlights: "No flights available"
   },
   de: {
     arrivals: "ANKÜNFTE",
@@ -63,32 +38,7 @@ const translations = {
     early: "FRÜHER",
     departed: "ABGEFLOGEN",
     ontime: "PÜNKTLICH",
-    noFlights: "Keine Flüge verfügbar",
-    cardTitle: "FlightRadar24 Split-Flap-Anzeige",
-    entity: "Entität",
-    entityHelper: "Wähle eine FlightRadar24 Sensor-Entität",
-    title: "Titel",
-    titleHelper: "Anzeigetitel (leer lassen für Standard)",
-    maxFlights: "Maximale Anzahl Flüge",
-    maxFlightsHelper: "Anzahl der anzuzeigenden Flüge",
-    flipDuration: "Flip-Dauer (ms)",
-    flipDurationHelper: "Dauer der Flip-Animation in Millisekunden",
-    flipDelay: "Flip-Verzögerung (ms)",
-    flipDelayHelper: "Verzögerung zwischen einzelnen Buchstaben in Millisekunden",
-    mode: "Sensor-Modus",
-    modeHelper: "Automatisch erkennen oder manuell festlegen",
-    language: "Sprache",
-    languageHelper: "Anzeigesprache",
-    visibleFields: "Sichtbare Felder",
-    visibleFieldsHelper: "Wähle welche Informationen angezeigt werden sollen",
-    showTime: "Zeit anzeigen",
-    showFlight: "Flugnummer anzeigen",
-    showFrom: "Herkunft anzeigen",
-    showTo: "Ziel anzeigen",
-    showStatus: "Status anzeigen",
-    showAircraft: "Flugzeugtyp anzeigen",
-    showAltitude: "Höhe anzeigen",
-    showSpeed: "Geschwindigkeit anzeigen"
+    noFlights: "Keine Flüge verfügbar"
   },
   es: {
     arrivals: "LLEGADAS",
@@ -108,32 +58,7 @@ const translations = {
     early: "TEMPRANO",
     departed: "DESPEGADO",
     ontime: "A TIEMPO",
-    noFlights: "No hay vuelos disponibles",
-    cardTitle: "Pantalla FlightRadar24 Split-Flap",
-    entity: "Entidad",
-    entityHelper: "Selecciona una entidad de sensor FlightRadar24",
-    title: "Título",
-    titleHelper: "Título de visualización (dejar vacío para predeterminado)",
-    maxFlights: "Vuelos Máximos",
-    maxFlightsHelper: "Número de vuelos a mostrar",
-    flipDuration: "Duración de Flip (ms)",
-    flipDurationHelper: "Duración de la animación de flip en milisegundos",
-    flipDelay: "Retraso de Flip (ms)",
-    flipDelayHelper: "Retraso entre flips de caracteres individuales en milisegundos",
-    mode: "Modo de Sensor",
-    modeHelper: "Detectar automáticamente o establecer manualmente el tipo de sensor",
-    language: "Idioma",
-    languageHelper: "Idioma de visualización",
-    visibleFields: "Campos Visibles",
-    visibleFieldsHelper: "Selecciona qué información mostrar",
-    showTime: "Mostrar Hora",
-    showFlight: "Mostrar Número de Vuelo",
-    showFrom: "Mostrar Origen",
-    showTo: "Mostrar Destino",
-    showStatus: "Mostrar Estado",
-    showAircraft: "Mostrar Tipo de Avión",
-    showAltitude: "Mostrar Altitud",
-    showSpeed: "Mostrar Velocidad"
+    noFlights: "No hay vuelos disponibles"
   },
   fr: {
     arrivals: "ARRIVÉES",
@@ -153,32 +78,7 @@ const translations = {
     early: "EN AVANCE",
     departed: "DÉCOLLÉ",
     ontime: "À L'HEURE",
-    noFlights: "Aucun vol disponible",
-    cardTitle: "Affichage FlightRadar24 Split-Flap",
-    entity: "Entité",
-    entityHelper: "Sélectionner une entité de capteur FlightRadar24",
-    title: "Titre",
-    titleHelper: "Titre d'affichage (laisser vide pour défaut)",
-    maxFlights: "Nombre Maximum de Vols",
-    maxFlightsHelper: "Nombre de vols à afficher",
-    flipDuration: "Durée de Flip (ms)",
-    flipDurationHelper: "Durée de l'animation de flip en millisecondes",
-    flipDelay: "Délai de Flip (ms)",
-    flipDelayHelper: "Délai entre les flips de caractères individuels en millisecondes",
-    mode: "Mode de Capteur",
-    modeHelper: "Détection automatique ou définition manuelle du type de capteur",
-    language: "Langue",
-    languageHelper: "Langue d'affichage",
-    visibleFields: "Champs Visibles",
-    visibleFieldsHelper: "Sélectionner quelles informations afficher",
-    showTime: "Afficher l'Heure",
-    showFlight: "Afficher le Numéro de Vol",
-    showFrom: "Afficher l'Origine",
-    showTo: "Afficher la Destination",
-    showStatus: "Afficher le Statut",
-    showAircraft: "Afficher le Type d'Avion",
-    showAltitude: "Afficher l'Altitude",
-    showSpeed: "Afficher la Vitesse"
+    noFlights: "Aucun vol disponible"
   }
 };
 
@@ -195,6 +95,24 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       throw new Error('Please define an entity');
     }
 
+    // Ensure visible_fields has proper defaults
+    const defaultVisibleFields = {
+      time: true,
+      flight: true,
+      from: true,
+      to: false,
+      status: true,
+      aircraft: true,
+      altitude: false,
+      speed: false
+    };
+
+    // Merge user config with defaults
+    const visible_fields = config.visible_fields ? {
+      ...defaultVisibleFields,
+      ...config.visible_fields
+    } : defaultVisibleFields;
+
     // Default configuration
     this.config = {
       entity: config.entity,
@@ -204,17 +122,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       flip_delay: config.flip_delay || 50,
       mode: config.mode || 'auto',
       language: config.language || 'en',
-      visible_fields: config.visible_fields || {
-        time: true,
-        flight: true,
-        from: true,
-        to: true,
-        status: true,
-        aircraft: true,
-        altitude: false,
-        speed: false
-      },
-      ...config
+      visible_fields: visible_fields
     };
 
     this.render();
@@ -237,7 +145,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   t(key) {
-    const lang = this.config.language;
+    const lang = this.config.language || 'en';
     return translations[lang]?.[key] || translations.en[key] || key;
   }
 
@@ -270,41 +178,41 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   formatFlight(flight) {
     const mode = this.detectMode(flight);
     const fields = {};
-    const vf = this.config.visible_fields;
+    const vf = this.config.visible_fields || {};
 
     if (mode === 'airport') {
       const scheduled = flight.time_scheduled_arrival ? 
         new Date(flight.time_scheduled_arrival * 1000) : null;
       
-      if (vf.time) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
-      if (vf.flight) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
-      if (vf.from) fields.from = (flight.airport_city || flight.airport_origin_city || '').substring(0, 15).padEnd(15, ' ');
-      if (vf.to) fields.to = (flight.airport_destination_city || '').substring(0, 15).padEnd(15, ' ');
-      if (vf.status) fields.status = (flight.status_text || this.t('expected')).substring(0, 12).padEnd(12, ' ');
-      if (vf.aircraft) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
-      if (vf.altitude) fields.altitude = this.formatAltitude(flight.altitude);
-      if (vf.speed) fields.speed = this.formatSpeed(flight.ground_speed);
+      if (vf.time !== false) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
+      if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
+      if (vf.from !== false) fields.from = (flight.airport_city || flight.airport_origin_city || '').substring(0, 15).padEnd(15, ' ');
+      if (vf.to === true) fields.to = (flight.airport_destination_city || '').substring(0, 15).padEnd(15, ' ');
+      if (vf.status !== false) fields.status = (flight.status_text || this.t('expected')).substring(0, 12).padEnd(12, ' ');
+      if (vf.aircraft !== false) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
+      if (vf.altitude === true) fields.altitude = this.formatAltitude(flight.altitude);
+      if (vf.speed === true) fields.speed = this.formatSpeed(flight.ground_speed);
     } else {
       const scheduled = flight.time_scheduled_arrival ? 
         new Date(flight.time_scheduled_arrival * 1000) : null;
       const estimated = flight.time_estimated_arrival ? 
         new Date(flight.time_estimated_arrival * 1000) : null;
       
-      if (vf.time) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
-      if (vf.flight) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
-      if (vf.from) fields.from = (flight.airport_origin_code_iata || flight.airport_origin_city || '').substring(0, 15).padEnd(15, ' ');
-      if (vf.to) fields.to = (flight.airport_destination_code_iata || flight.airport_destination_city || '').substring(0, 15).padEnd(15, ' ');
-      if (vf.status) fields.status = this.getAreaStatus(flight, scheduled, estimated);
-      if (vf.aircraft) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
-      if (vf.altitude) fields.altitude = this.formatAltitude(flight.altitude);
-      if (vf.speed) fields.speed = this.formatSpeed(flight.ground_speed);
+      if (vf.time !== false) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
+      if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
+      if (vf.from !== false) fields.from = (flight.airport_origin_code_iata || flight.airport_origin_city || '').substring(0, 15).padEnd(15, ' ');
+      if (vf.to === true) fields.to = (flight.airport_destination_code_iata || flight.airport_destination_city || '').substring(0, 15).padEnd(15, ' ');
+      if (vf.status !== false) fields.status = this.getAreaStatus(flight, scheduled, estimated);
+      if (vf.aircraft !== false) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
+      if (vf.altitude === true) fields.altitude = this.formatAltitude(flight.altitude);
+      if (vf.speed === true) fields.speed = this.formatSpeed(flight.ground_speed);
     }
 
     return fields;
   }
 
   formatTime(date) {
-    return date.toLocaleTimeString(this.config.language, { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(this.config.language || 'en', { hour: '2-digit', minute: '2-digit' });
   }
 
   formatAltitude(alt) {
@@ -399,16 +307,16 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     row.setAttribute('data-row', index);
 
     const fieldConfig = [];
-    const vf = this.config.visible_fields;
+    const vf = this.config.visible_fields || {};
     
-    if (vf.time) fieldConfig.push({ name: 'time', value: flight.time, width: '60px' });
-    if (vf.flight) fieldConfig.push({ name: 'flight', value: flight.flight, width: '100px' });
-    if (vf.from) fieldConfig.push({ name: 'from', value: flight.from, width: '180px' });
-    if (vf.to) fieldConfig.push({ name: 'to', value: flight.to, width: '180px' });
-    if (vf.status) fieldConfig.push({ name: 'status', value: flight.status, width: '130px' });
-    if (vf.aircraft) fieldConfig.push({ name: 'aircraft', value: flight.aircraft, width: '140px' });
-    if (vf.altitude) fieldConfig.push({ name: 'altitude', value: flight.altitude, width: '100px' });
-    if (vf.speed) fieldConfig.push({ name: 'speed', value: flight.speed, width: '100px' });
+    if (vf.time !== false) fieldConfig.push({ name: 'time', value: flight.time, width: '60px' });
+    if (vf.flight !== false) fieldConfig.push({ name: 'flight', value: flight.flight, width: '100px' });
+    if (vf.from !== false) fieldConfig.push({ name: 'from', value: flight.from, width: '180px' });
+    if (vf.to === true) fieldConfig.push({ name: 'to', value: flight.to, width: '180px' });
+    if (vf.status !== false) fieldConfig.push({ name: 'status', value: flight.status, width: '130px' });
+    if (vf.aircraft !== false) fieldConfig.push({ name: 'aircraft', value: flight.aircraft, width: '140px' });
+    if (vf.altitude === true) fieldConfig.push({ name: 'altitude', value: flight.altitude, width: '100px' });
+    if (vf.speed === true) fieldConfig.push({ name: 'speed', value: flight.speed, width: '100px' });
 
     fieldConfig.forEach(field => {
       const cell = document.createElement('div');
@@ -444,17 +352,17 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   render() {
-    const vf = this.config.visible_fields;
+    const vf = this.config.visible_fields || {};
     const headerCells = [];
     
-    if (vf.time) headerCells.push({ text: this.t('time'), width: '60px' });
-    if (vf.flight) headerCells.push({ text: this.t('flight'), width: '100px' });
-    if (vf.from) headerCells.push({ text: this.t('from'), width: '180px' });
-    if (vf.to) headerCells.push({ text: this.t('to'), width: '180px' });
-    if (vf.status) headerCells.push({ text: this.t('status'), width: '130px' });
-    if (vf.aircraft) headerCells.push({ text: this.t('aircraft'), width: '140px' });
-    if (vf.altitude) headerCells.push({ text: this.t('altitude'), width: '100px' });
-    if (vf.speed) headerCells.push({ text: this.t('speed'), width: '100px' });
+    if (vf.time !== false) headerCells.push({ text: this.t('time'), width: '60px' });
+    if (vf.flight !== false) headerCells.push({ text: this.t('flight'), width: '100px' });
+    if (vf.from !== false) headerCells.push({ text: this.t('from'), width: '180px' });
+    if (vf.to === true) headerCells.push({ text: this.t('to'), width: '180px' });
+    if (vf.status !== false) headerCells.push({ text: this.t('status'), width: '130px' });
+    if (vf.aircraft !== false) headerCells.push({ text: this.t('aircraft'), width: '140px' });
+    if (vf.altitude === true) headerCells.push({ text: this.t('altitude'), width: '100px' });
+    if (vf.speed === true) headerCells.push({ text: this.t('speed'), width: '100px' });
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -618,18 +526,14 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     return 3;
   }
 
-  static getGridOptions() {
+  static getLayoutOptions() {
     return {
-      rows: 3,
-      columns: 12,
-      min_rows: 2,
-      max_rows: 6,
-      min_columns: 6
+      grid_rows: 3,
+      grid_columns: 12,
+      grid_min_rows: 2,
+      grid_max_rows: 6,
+      grid_min_columns: 6
     };
-  }
-
-  static getConfigElement() {
-    return document.createElement('flightradar24-splitflap-card-editor');
   }
 
   static getStubConfig() {
@@ -649,29 +553,47 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       }
     };
   }
+
+  static getConfigElement() {
+    return document.createElement('flightradar24-splitflap-card-editor');
+  }
 }
 
 class FlightRadar24SplitFlapCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
   setConfig(config) {
-    this._config = config || {};
+    this._config = {
+      entity: '',
+      title: '',
+      language: 'en',
+      max_flights: 8,
+      flip_duration: 800,
+      flip_delay: 50,
+      mode: 'auto',
+      visible_fields: {
+        time: true,
+        flight: true,
+        from: true,
+        to: false,
+        status: true,
+        aircraft: true,
+        altitude: false,
+        speed: false
+      },
+      ...config
+    };
     this.render();
   }
 
   set hass(hass) {
     this._hass = hass;
-    
-    if (!this.entityDropdown) {
+    if (!this._rendered) {
       this.render();
     }
-  }
-
-  configChanged(newConfig) {
-    const event = new Event('config-changed', {
-      bubbles: true,
-      composed: true
-    });
-    event.detail = { config: newConfig };
-    this.dispatchEvent(event);
   }
 
   getFlightRadar24Entities() {
@@ -687,15 +609,16 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
 
   render() {
     if (!this._hass) {
-      this.innerHTML = '<div>Loading...</div>';
+      this.shadowRoot.innerHTML = '<div style="padding: 16px;">Loading...</div>';
       return;
     }
 
+    this._rendered = true;
     const entities = this.getFlightRadar24Entities();
     const config = this._config;
     const vf = config.visible_fields || {};
 
-    this.innerHTML = `
+    this.shadowRoot.innerHTML = `
       <style>
         .card-config {
           padding: 16px;
@@ -707,19 +630,22 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
           display: block;
           margin-bottom: 4px;
           font-weight: 500;
+          font-size: 14px;
         }
         .helper {
           font-size: 12px;
           color: var(--secondary-text-color);
           margin-top: 4px;
         }
-        select, input {
+        select, input[type="text"], input[type="number"] {
           width: 100%;
           padding: 8px;
           border: 1px solid var(--divider-color);
           border-radius: 4px;
           background: var(--card-background-color);
           color: var(--primary-text-color);
+          font-size: 14px;
+          box-sizing: border-box;
         }
         .checkbox-group {
           display: grid;
@@ -730,16 +656,21 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
         .checkbox-item {
           display: flex;
           align-items: center;
+          gap: 8px;
         }
-        .checkbox-item input {
+        .checkbox-item input[type="checkbox"] {
           width: auto;
-          margin-right: 8px;
+          margin: 0;
+        }
+        .checkbox-item label {
+          margin: 0;
+          font-weight: normal;
         }
       </style>
       
       <div class="card-config">
         <div class="config-row">
-          <label>Entity</label>
+          <label for="entity">Entity *</label>
           <select id="entity">
             <option value="">Select FlightRadar24 sensor...</option>
             ${entities.map(e => `
@@ -752,13 +683,13 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
         </div>
 
         <div class="config-row">
-          <label>Title (optional)</label>
+          <label for="title">Title (optional)</label>
           <input type="text" id="title" value="${config.title || ''}" placeholder="Leave empty for auto">
-          <div class="helper">Display title (leave empty for auto-detect based on sensor)</div>
+          <div class="helper">Display title (leave empty for auto-detect)</div>
         </div>
 
         <div class="config-row">
-          <label>Language</label>
+          <label for="language">Language</label>
           <select id="language">
             <option value="en" ${config.language === 'en' ? 'selected' : ''}>English</option>
             <option value="de" ${config.language === 'de' ? 'selected' : ''}>Deutsch</option>
@@ -769,31 +700,31 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
         </div>
 
         <div class="config-row">
-          <label>Maximum Flights</label>
+          <label for="max_flights">Maximum Flights</label>
           <input type="number" id="max_flights" value="${config.max_flights || 8}" min="1" max="20">
           <div class="helper">Number of flights to display (1-20)</div>
         </div>
 
         <div class="config-row">
-          <label>Flip Duration (ms)</label>
+          <label for="flip_duration">Flip Duration (ms)</label>
           <input type="number" id="flip_duration" value="${config.flip_duration || 800}" min="200" max="2000" step="100">
-          <div class="helper">Duration of flip animation in milliseconds</div>
+          <div class="helper">Duration of flip animation</div>
         </div>
 
         <div class="config-row">
-          <label>Flip Delay (ms)</label>
+          <label for="flip_delay">Flip Delay (ms)</label>
           <input type="number" id="flip_delay" value="${config.flip_delay || 50}" min="10" max="200" step="10">
-          <div class="helper">Delay between individual character flips</div>
+          <div class="helper">Delay between character flips</div>
         </div>
 
         <div class="config-row">
-          <label>Sensor Mode</label>
+          <label for="mode">Sensor Mode</label>
           <select id="mode">
             <option value="auto" ${config.mode === 'auto' ? 'selected' : ''}>Auto-detect</option>
             <option value="airport" ${config.mode === 'airport' ? 'selected' : ''}>Airport</option>
             <option value="area" ${config.mode === 'area' ? 'selected' : ''}>Area</option>
           </select>
-          <div class="helper">Sensor type detection mode</div>
+          <div class="helper">Sensor type detection</div>
         </div>
 
         <div class="config-row">
@@ -832,53 +763,57 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
               <label for="show_speed">Speed</label>
             </div>
           </div>
-          <div class="helper">Select which information to display on the board</div>
+          <div class="helper">Select which fields to display</div>
         </div>
       </div>
     `;
 
-    this.entityDropdown = this.querySelector('#entity');
-    this.entityDropdown?.addEventListener('change', () => this.valueChanged());
+    // Add event listeners
+    this.shadowRoot.getElementById('entity')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('title')?.addEventListener('input', () => this.valueChanged());
+    this.shadowRoot.getElementById('language')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('max_flights')?.addEventListener('input', () => this.valueChanged());
+    this.shadowRoot.getElementById('flip_duration')?.addEventListener('input', () => this.valueChanged());
+    this.shadowRoot.getElementById('flip_delay')?.addEventListener('input', () => this.valueChanged());
+    this.shadowRoot.getElementById('mode')?.addEventListener('change', () => this.valueChanged());
     
-    this.querySelector('#title')?.addEventListener('input', () => this.valueChanged());
-    this.querySelector('#language')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#max_flights')?.addEventListener('input', () => this.valueChanged());
-    this.querySelector('#flip_duration')?.addEventListener('input', () => this.valueChanged());
-    this.querySelector('#flip_delay')?.addEventListener('input', () => this.valueChanged());
-    this.querySelector('#mode')?.addEventListener('change', () => this.valueChanged());
-    
-    this.querySelector('#show_time')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_flight')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_from')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_to')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_status')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_aircraft')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_altitude')?.addEventListener('change', () => this.valueChanged());
-    this.querySelector('#show_speed')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_time')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_flight')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_from')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_to')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_status')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_aircraft')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_altitude')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_speed')?.addEventListener('change', () => this.valueChanged());
   }
 
   valueChanged() {
     const newConfig = {
-      entity: this.querySelector('#entity').value,
-      title: this.querySelector('#title').value,
-      language: this.querySelector('#language').value,
-      max_flights: parseInt(this.querySelector('#max_flights').value) || 8,
-      flip_duration: parseInt(this.querySelector('#flip_duration').value) || 800,
-      flip_delay: parseInt(this.querySelector('#flip_delay').value) || 50,
-      mode: this.querySelector('#mode').value,
+      entity: this.shadowRoot.getElementById('entity')?.value || '',
+      title: this.shadowRoot.getElementById('title')?.value || '',
+      language: this.shadowRoot.getElementById('language')?.value || 'en',
+      max_flights: parseInt(this.shadowRoot.getElementById('max_flights')?.value) || 8,
+      flip_duration: parseInt(this.shadowRoot.getElementById('flip_duration')?.value) || 800,
+      flip_delay: parseInt(this.shadowRoot.getElementById('flip_delay')?.value) || 50,
+      mode: this.shadowRoot.getElementById('mode')?.value || 'auto',
       visible_fields: {
-        time: this.querySelector('#show_time').checked,
-        flight: this.querySelector('#show_flight').checked,
-        from: this.querySelector('#show_from').checked,
-        to: this.querySelector('#show_to').checked,
-        status: this.querySelector('#show_status').checked,
-        aircraft: this.querySelector('#show_aircraft').checked,
-        altitude: this.querySelector('#show_altitude').checked,
-        speed: this.querySelector('#show_speed').checked
+        time: this.shadowRoot.getElementById('show_time')?.checked !== false,
+        flight: this.shadowRoot.getElementById('show_flight')?.checked !== false,
+        from: this.shadowRoot.getElementById('show_from')?.checked !== false,
+        to: this.shadowRoot.getElementById('show_to')?.checked === true,
+        status: this.shadowRoot.getElementById('show_status')?.checked !== false,
+        aircraft: this.shadowRoot.getElementById('show_aircraft')?.checked !== false,
+        altitude: this.shadowRoot.getElementById('show_altitude')?.checked === true,
+        speed: this.shadowRoot.getElementById('show_speed')?.checked === true
       }
     };
     
-    this.configChanged(newConfig);
+    const event = new CustomEvent('config-changed', {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true
+    });
+    this.dispatchEvent(event);
   }
 }
 
