@@ -36,9 +36,10 @@ entity: sensor.flightradar24_airport_departures
 | `title` | automatisch | Überschrift |
 | `language` | `en` | `en`, `de`, `es`, `fr` |
 | `max_flights` | `8` | Anzahl Flüge |
+| `board` | `auto` | `auto`, `arrivals`, `departures` – Richtung der Tafel |
 | `flip_duration` | `800` | Animation Dauer (ms) |
 | `flip_delay` | `50` | Verzögerung zwischen Buchstaben (ms) |
-| `visible_fields` | alle außer `to` | Welche Spalten angezeigt werden |
+| `visible_fields` | alle | Welche Spalten angezeigt werden |
 
 ## Beispiel
 

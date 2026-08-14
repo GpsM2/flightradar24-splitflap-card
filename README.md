@@ -61,16 +61,37 @@ entity: sensor.flightradar24_airport_arrivals  # erforderlich
 title: ANKÜNFTE FRANKFURT   # Überschrift, Standard: automatisch anhand der Entity
 language: de                # en, de, es, fr – Standard: en
 max_flights: 8               # Anzahl angezeigter Flüge, Standard: 8
+board: auto                  # auto, arrivals, departures – Standard: auto
 flip_duration: 800           # Dauer der Flip-Animation in ms, Standard: 800
 flip_delay: 50                # Verzögerung zwischen Buchstaben in ms, Standard: 50
 visible_fields:               # welche Spalten angezeigt werden
   time: true
   flight: true
-  from: true
-  to: false
+  airport: true
   status: true
   aircraft: true
 ```
+
+### Ankünfte oder Abflüge
+
+Die Card erkennt selbst, ob der gewählte Sensor eine Ankunfts- oder
+Abflugtafel ist, und passt sich an:
+
+| | Ankünfte | Abflüge |
+|---|---|---|
+| Spaltenüberschrift | `VON` | `NACH` |
+| Angezeigte Zeit | geplante Ankunft | geplanter Abflug |
+| Automatischer Titel | `ANKÜNFTE` | `ABFLÜGE` |
+
+Erkannt wird das am Icon des Sensors, das die Integration je Richtung
+vorgibt. Nur falls das fehlschlägt – etwa weil das Icon in Home Assistant
+überschrieben wurde – lässt sich die Richtung mit `board: arrivals` bzw.
+`board: departures` fest vorgeben.
+
+Ein Flug nennt immer nur den *anderen* Flughafen: Auf einer Ankunftstafel
+ist das die Herkunft, auf einer Abflugtafel das Ziel. Deshalb gibt es genau
+eine Flughafen-Spalte (`visible_fields.airport`), deren Beschriftung sich
+mit der Richtung ändert.
 
 ## Unterstützte Entities
 
