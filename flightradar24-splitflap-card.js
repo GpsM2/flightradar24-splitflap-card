@@ -91,17 +91,27 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     const defaultVisibleFields = {
       time: true,
       flight: true,
-      from: true,
-      to: false,
+      airport: true,
       status: true,
       aircraft: true
     };
 
     // Merge user config with defaults
-    const visible_fields = config.visible_fields ? {
+    const visible_fields = {
       ...defaultVisibleFields,
-      ...config.visible_fields
-    } : defaultVisibleFields;
+      ...(config.visible_fields || {})
+    };
+
+    // `from` and `to` used to be separate columns. A flight object only ever
+    // names the *other* airport — the board's own airport is never in the
+    // data — so there is one airport column whose meaning follows the board
+    // direction. Old configs that hid `from` keep hiding the column.
+    if (config.visible_fields && config.visible_fields.airport === undefined
+        && config.visible_fields.from !== undefined) {
+      visible_fields.airport = config.visible_fields.from;
+    }
+    delete visible_fields.from;
+    delete visible_fields.to;
 
     // Default configuration
     this.config = {
@@ -111,6 +121,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       flip_duration: config.flip_duration || 800,
       flip_delay: config.flip_delay || 50,
       language: config.language || 'en',
+      board: config.board || 'auto',
       visible_fields: visible_fields
     };
 
@@ -120,17 +131,56 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     const entity = hass.states[this.config.entity];
-    
+
     if (!entity) {
       console.error('Entity not found:', this.config.entity);
       return;
     }
 
+    // The first render happens in setConfig, before hass exists — so the
+    // header was built without knowing the direction or the entity, and the
+    // auto title fell back to a generic label. Rebuild the chrome once hass
+    // arrives, and again whenever the direction changes.
+    if (!this._renderedWithHass || this.getDirection() !== this._renderedDirection) {
+      // render() replaces the whole shadow DOM, so the board has to be
+      // rebuilt too. Clearing `flights` as well makes the diff below treat
+      // the incoming list as new — otherwise an unchanged list would skip
+      // the redraw and leave an empty board behind.
+      this.flights = [];
+      this.displayedFlights = [];
+      this.render();
+    }
+
     const newFlights = entity.attributes.flights || [];
-    
+
     if (JSON.stringify(newFlights) !== JSON.stringify(this.flights)) {
       this.updateFlights(newFlights);
     }
+  }
+
+  /**
+   * Arrivals and departures boards need opposite time fields and an opposite
+   * airport label, but the direction cannot be read off a flight: a flight
+   * object only names the other airport, never the board's own.
+   *
+   * The integration hardcodes a distinct icon per sensor
+   * (`mdi:airplane-landing` vs `mdi:airplane-takeoff`), which is
+   * language-independent and present even when the flight list is empty.
+   * The entity ID is only a fallback, since IDs get renamed and are
+   * localised in some installs.
+   *
+   * @returns {'arrivals' | 'departures'}
+   */
+  getDirection() {
+    if (this.config.board === 'arrivals' || this.config.board === 'departures') {
+      return this.config.board;
+    }
+
+    const icon = this._hass?.states[this.config.entity]?.attributes.icon;
+    if (icon === 'mdi:airplane-takeoff') return 'departures';
+    if (icon === 'mdi:airplane-landing') return 'arrivals';
+
+    return /departure/i.test(this.config.entity) ? 'departures' : 'arrivals';
   }
 
   t(key) {
@@ -160,14 +210,18 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   formatFlight(flight) {
     const fields = {};
     const vf = this.config.visible_fields || {};
+    const departures = this.getDirection() === 'departures';
 
-    const scheduled = flight.time_scheduled_arrival ?
-      new Date(flight.time_scheduled_arrival * 1000) : null;
+    // A departures board is about when the flight leaves this airport; the
+    // arrival time belongs to the far end of the route and would be wrong.
+    const scheduledTs = departures
+      ? flight.time_scheduled_departure
+      : flight.time_scheduled_arrival;
+    const scheduled = scheduledTs ? new Date(scheduledTs * 1000) : null;
 
     if (vf.time !== false) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
     if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
-    if (vf.from !== false) fields.from = (flight.airport_city || flight.airport_origin_city || '').substring(0, 15).padEnd(15, ' ');
-    if (vf.to === true) fields.to = (flight.airport_destination_city || '').substring(0, 15).padEnd(15, ' ');
+    if (vf.airport !== false) fields.airport = (flight.airport_city || flight.airport_code_iata || '').substring(0, 15).padEnd(15, ' ');
     if (vf.status !== false) fields.status = (flight.status_text || this.t('expected')).substring(0, 12).padEnd(12, ' ');
     if (vf.aircraft !== false) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
 
@@ -254,8 +308,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     
     if (vf.time !== false) fieldConfig.push({ name: 'time', value: flight.time, width: '60px' });
     if (vf.flight !== false) fieldConfig.push({ name: 'flight', value: flight.flight, width: '100px' });
-    if (vf.from !== false) fieldConfig.push({ name: 'from', value: flight.from, width: '180px' });
-    if (vf.to === true) fieldConfig.push({ name: 'to', value: flight.to, width: '180px' });
+    if (vf.airport !== false) fieldConfig.push({ name: 'airport', value: flight.airport, width: '180px' });
     if (vf.status !== false) fieldConfig.push({ name: 'status', value: flight.status, width: '130px' });
     if (vf.aircraft !== false) fieldConfig.push({ name: 'aircraft', value: flight.aircraft, width: '140px' });
 
@@ -281,25 +334,24 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
   getTitle() {
     if (this.config.title) return this.config.title;
-    
-    const entity = this._hass?.states[this.config.entity];
-    if (!entity) return this.t('flights');
-    
-    const entityId = this.config.entity.toLowerCase();
-    if (entityId.includes('arrival')) return this.t('arrivals');
-    if (entityId.includes('departure')) return this.t('departures');
-    
-    return this.t('flights');
+    if (!this._hass?.states[this.config.entity]) return this.t('flights');
+
+    return this.t(this.getDirection() === 'departures' ? 'departures' : 'arrivals');
   }
 
   render() {
     const vf = this.config.visible_fields || {};
     const headerCells = [];
-    
+    const departures = this.getDirection() === 'departures';
+
+    // Remembered so `set hass` can tell when the direction resolves or
+    // changes and the header has to be rebuilt.
+    this._renderedDirection = departures ? 'departures' : 'arrivals';
+    this._renderedWithHass = !!this._hass;
+
     if (vf.time !== false) headerCells.push({ text: this.t('time'), width: '60px' });
     if (vf.flight !== false) headerCells.push({ text: this.t('flight'), width: '100px' });
-    if (vf.from !== false) headerCells.push({ text: this.t('from'), width: '180px' });
-    if (vf.to === true) headerCells.push({ text: this.t('to'), width: '180px' });
+    if (vf.airport !== false) headerCells.push({ text: this.t(departures ? 'to' : 'from'), width: '180px' });
     if (vf.status !== false) headerCells.push({ text: this.t('status'), width: '130px' });
     if (vf.aircraft !== false) headerCells.push({ text: this.t('aircraft'), width: '140px' });
 
@@ -480,11 +532,11 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       entity: '',
       max_flights: 8,
       language: 'en',
+      board: 'auto',
       visible_fields: {
         time: true,
         flight: true,
-        from: true,
-        to: false,
+        airport: true,
         status: true,
         aircraft: true
       }
@@ -510,11 +562,11 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       max_flights: 8,
       flip_duration: 800,
       flip_delay: 50,
+      board: 'auto',
       visible_fields: {
         time: true,
         flight: true,
-        from: true,
-        to: false,
+        airport: true,
         status: true,
         aircraft: true
       },
@@ -675,6 +727,16 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
         </div>
 
         <div class="config-row">
+          <label for="board">Board Direction</label>
+          <select id="board">
+            <option value="auto" ${config.board !== 'arrivals' && config.board !== 'departures' ? 'selected' : ''}>Auto-detect</option>
+            <option value="arrivals" ${config.board === 'arrivals' ? 'selected' : ''}>Arrivals</option>
+            <option value="departures" ${config.board === 'departures' ? 'selected' : ''}>Departures</option>
+          </select>
+          <div class="helper">Detected from the sensor. Override only if the airport column is labelled wrong.</div>
+        </div>
+
+        <div class="config-row">
           <label>Visible Fields</label>
           <div class="checkbox-group">
             <div class="checkbox-item">
@@ -686,12 +748,8 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
               <label for="show_flight">Flight Number</label>
             </div>
             <div class="checkbox-item">
-              <input type="checkbox" id="show_from" ${vf.from !== false ? 'checked' : ''}>
-              <label for="show_from">From</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_to" ${vf.to === true ? 'checked' : ''}>
-              <label for="show_to">To</label>
+              <input type="checkbox" id="show_airport" ${vf.airport !== false ? 'checked' : ''}>
+              <label for="show_airport">Airport (From/To)</label>
             </div>
             <div class="checkbox-item">
               <input type="checkbox" id="show_status" ${vf.status !== false ? 'checked' : ''}>
@@ -714,11 +772,11 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     this.shadowRoot.getElementById('max_flights')?.addEventListener('input', () => this.valueChanged());
     this.shadowRoot.getElementById('flip_duration')?.addEventListener('input', () => this.valueChanged());
     this.shadowRoot.getElementById('flip_delay')?.addEventListener('input', () => this.valueChanged());
+    this.shadowRoot.getElementById('board')?.addEventListener('change', () => this.valueChanged());
 
     this.shadowRoot.getElementById('show_time')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_flight')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_from')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_to')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_airport')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_status')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_aircraft')?.addEventListener('change', () => this.valueChanged());
   }
@@ -747,11 +805,11 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       max_flights: parseInt(this.getInput('max_flights')?.value) || 8,
       flip_duration: parseInt(this.getInput('flip_duration')?.value) || 800,
       flip_delay: parseInt(this.getInput('flip_delay')?.value) || 50,
+      board: this.getSelect('board')?.value || 'auto',
       visible_fields: {
         time: this.getInput('show_time')?.checked !== false,
         flight: this.getInput('show_flight')?.checked !== false,
-        from: this.getInput('show_from')?.checked !== false,
-        to: this.getInput('show_to')?.checked === true,
+        airport: this.getInput('show_airport')?.checked !== false,
         status: this.getInput('show_status')?.checked !== false,
         aircraft: this.getInput('show_aircraft')?.checked !== false
       }

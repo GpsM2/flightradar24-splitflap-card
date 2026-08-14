@@ -7,6 +7,28 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben
+- Auf einer Abflugtafel war die Spalte `VON` mit dem *Ziel* des Fluges
+  gefüllt. Die Card erkennt jetzt die Richtung des Sensors und beschriftet
+  die Spalte entsprechend `VON` (Ankünfte) bzw. `NACH` (Abflüge).
+- Auf einer Abflugtafel zeigte die Zeitspalte die geplante *Ankunft* am
+  Zielflughafen statt des Abflugs. Beispiel: Ein Flug mit
+  „Estimated dep 07:40" wurde als `10:55` angezeigt.
+- Der automatische Titel blieb generisch (`FLÜGE`), statt auf `ANKÜNFTE`
+  bzw. `ABFLÜGE` umzustellen, sobald die Entity verfügbar war.
+
+### Hinzugefügt
+- Konfigurationsoption `board` (`auto`/`arrivals`/`departures`). Die
+  Richtung wird normalerweise selbst erkannt; die Option ist nur nötig,
+  falls das Icon des Sensors überschrieben wurde.
+
+### Geändert
+- `visible_fields.from` und `visible_fields.to` sind zu einer Spalte
+  `visible_fields.airport` zusammengefasst. Ein Flug nennt immer nur den
+  anderen Flughafen – der eigene steht nie in den Daten –, sodass die
+  zweite Spalte technisch nie gefüllt werden konnte. Bestehende Configs
+  mit `from: false` blenden die Spalte weiterhin aus.
+
 ### Entfernt
 - Unterstützung für die Area-Sensoren (`current_in_area`, `entered_area`,
   `exited_area`, `additional_tracked`). Diese Card ist eine reine
