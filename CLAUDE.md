@@ -34,6 +34,14 @@ store — clean i18n, tested behavior, a disciplined release process.
 - Chat with the maintainer: German. Everything that lands in the repo
   (code, comments, commit messages, PR/issue text, docs): English.
 
+## Repository governance
+
+A GitHub ruleset ("Protect main") enforces part of the above mechanically:
+no direct pushes to `main` (PR required, even for the repo owner), no force
+pushes, no deletion, and the `lint-and-typecheck` CI check must pass before
+merge. This isn't optional/bypassable — if a push is rejected, open a PR
+instead rather than looking for a workaround.
+
 ## Labels
 
 - `bug` — something is broken.
@@ -49,12 +57,17 @@ store — clean i18n, tested behavior, a disciplined release process.
 ## Versioning
 
 This is a Lovelace card, not a HA integration — there is no `manifest.json`.
-Version of record:
+Version of record, [Semantic Versioning 2.0.0](https://semver.org/), no `v`
+prefix anywhere (not on tags, not on milestones):
 - `CARD_VERSION` constant at the top of `flightradar24-splitflap-card.js`,
   logged to the console on load.
-- The matching git tag on release (`vX.Y.Z` final, `vX.Y.Z-beta.N` pre-release).
+- The matching git tag on release (`X.Y.Z` final, `X.Y.Z-beta.N` pre-release).
+- GitHub Milestones are named after the target version (`0.3.0`, `0.4.0`, …)
+  and group issues by release batch, not opened one-off per issue.
 Bump `CARD_VERSION` (patch by default, e.g. 0.2.3 → 0.2.4) only for actual
-functional changes — never for README/docs-only edits.
+functional changes — never for README/docs-only edits. Pre-1.0.0, a
+backward-incompatible change bumps MINOR (0.X.0), not MAJOR — common
+convention for initial development, not strict spec requirement.
 
 ## Code quality gates (JS equivalent of ruff/mypy)
 
@@ -93,7 +106,8 @@ dependency-free JS — HACS still just serves the raw file.
   provided out-of-band, never committed to the repo).
 - Read-only in practice: only GET requests against the HA API, never
   service calls or state changes.
-- Cover: sensor modes actually in scope (see area-mode scope decision),
+- Cover: `sensor.flightradar24_airport_arrivals` / `_departures` only —
+  area-sensor modes are out of scope for this card (see #2/#5) — plus
   missing/`unavailable` entity, empty flight list, long field values
   (truncation), light/dark HA themes.
 - No UI/frontend change counts as "done" without being exercised in a
