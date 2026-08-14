@@ -540,6 +540,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
       const inner = setTimeout(() => {
         element.textContent = newChar;
+        element.classList.toggle('blank', newChar === ' ');
         element.classList.remove('flipping');
         this._timers.delete(inner);
       }, this.config.flip_duration / 2);
