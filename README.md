@@ -4,198 +4,220 @@
 [![GitHub Release](https://img.shields.io/github/release/GpsM2/flightradar24-splitflap-card.svg?style=flat-square)](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
 [![License](https://img.shields.io/github/license/GpsM2/flightradar24-splitflap-card.svg?style=flat-square)](LICENSE)
 
-Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24) im Stil einer klassischen Flughafen-Anzeigetafel mit animierten Split-Flap-Displays darstellt.
+A custom Lovelace card for Home Assistant that renders flight data from the
+[FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
+as an animated split-flap airport board.
 
-**Noch in aktiver Entwicklung.** Feedback und Beiträge sind willkommen – siehe [CONTRIBUTING.md](CONTRIBUTING.md).
+**Still in active development.** Feedback and contributions are welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-![Ankunft, dunkles Theme](docs/screenshots/arrivals-dark.png)
+![Arrivals, dark theme](docs/screenshots/arrivals-dark.png)
 
 <details>
-<summary>Weitere Ansichten (Abflug, helles Theme)</summary>
+<summary>More views (departures, light theme)</summary>
 
-![Abflug, dunkles Theme](docs/screenshots/departures-dark.png)
-![Ankunft, helles Theme](docs/screenshots/arrivals-light.png)
+![Departures, dark theme](docs/screenshots/departures-dark.png)
+![Arrivals, light theme](docs/screenshots/arrivals-light.png)
 
 </details>
 
 ## Features
 
-- Authentische Split-Flap-Animation – jedes Zeichen dreht sich einzeln, nur geänderte Zeichen werden animiert
-- Für die Airport-Sensoren der Integration: Ankunft und Abflug eines Flughafens
-- Verspätungsanzeige: geplante und erwartete Zeit nebeneinander, farblich abgesetzt
-- Heller und dunkler Modus, folgt automatisch dem Home-Assistant-Theme
-- Responsives Raster: die Kacheln verkleinern sich, bis die Tafel in die Karte passt
-- Konfigurierbare Animationsgeschwindigkeit, Zeilenanzahl und sichtbare Spalten
-- Mehrsprachige Oberfläche (Deutsch, Englisch, Spanisch, Französisch)
-- Visueller Konfigurationseditor – keine YAML-Kenntnisse nötig
+- Authentic split-flap animation — each character flips on its own, and only
+  characters that actually changed are animated
+- Works with the integration's airport sensors: arrivals and departures
+- Delay indicator: scheduled and expected time side by side, colour-coded
+- Light and dark mode, following the Home Assistant theme automatically
+- Responsive grid: flaps shrink until the board fits the card
+- Bundled typeface — no fonts are loaded from third parties
+- Multilingual interface (English, German, Spanish, French)
+- Visual configuration editor — no YAML required
 
-## Voraussetzungen
+## Requirements
 
-- Home Assistant 2026.2.0 oder neuer
-- [FlightRadar24 Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24), installiert und konfiguriert
+- Home Assistant 2026.2.0 or newer
+- [FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24),
+  installed and configured
 
 ## Installation
 
-### HACS (empfohlen)
+### HACS (recommended)
 
-1. HACS öffnen → **Frontend**
-2. Drei-Punkte-Menü oben rechts → **Benutzerdefinierte Repositories**
-3. Repository-URL hinzufügen: `https://github.com/GpsM2/flightradar24-splitflap-card`, Kategorie **Lovelace**
-4. Nach „FlightRadar24 Split-Flap Card" suchen und installieren
-5. Home Assistant neu starten
+1. Open HACS → **Frontend**
+2. Three-dot menu at the top right → **Custom repositories**
+3. Add the repository URL `https://github.com/GpsM2/flightradar24-splitflap-card`
+   with category **Lovelace**
+4. Search for "FlightRadar24 Split-Flap Card" and install it
+5. Restart Home Assistant
 
-### Manuell
+### Manual
 
-1. Neueste Version von [Releases](https://github.com/GpsM2/flightradar24-splitflap-card/releases) herunterladen
-2. Den **gesamten Inhalt** des `dist`-Ordners nach `/config/www/flightradar24-splitflap-card/`
-   kopieren – also `flightradar24-splitflap-card.js` **und** den Ordner
-   `translations/`. Ohne die Übersetzungsdateien läuft die Card weiterhin,
-   zeigt dann aber alle Texte auf Englisch.
-3. Ressource in Home Assistant hinzufügen: **Einstellungen** → **Dashboards** → **Ressourcen** (drei Punkte oben rechts) → **Ressource hinzufügen**
+1. Download the latest version from
+   [Releases](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
+2. Copy the **entire contents** of the `dist` folder to
+   `/config/www/flightradar24-splitflap-card/` — that is
+   `flightradar24-splitflap-card.js` **and** the `translations/` and `fonts/`
+   folders. Without them the card still works, but falls back to English text
+   and a system monospace font.
+3. Add the resource in Home Assistant: **Settings** → **Dashboards** →
+   **Resources** (three-dot menu at the top right) → **Add resource**
    - URL: `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`
-   - Ressourcentyp: **JavaScript-Modul**
-4. Browser-Cache leeren (Strg+F5)
+   - Resource type: **JavaScript module**
+4. Clear the browser cache (Ctrl+F5)
 
-## Karte hinzufügen
+## Adding the card
 
-Die Karte wird über die Oberfläche von Home Assistant eingerichtet – YAML ist
-nicht nötig.
+The card is set up through the Home Assistant interface — no YAML needed.
 
-1. Dashboard bearbeiten → **Karte hinzufügen**
-2. Nach „FlightRadar24 Split-Flap Card" suchen und auswählen
-3. Im Editor den gewünschten Sensor wählen – zur Auswahl stehen nur die
-   Ankunfts- und Abflugtafeln, andere FlightRadar24-Sensoren werden
-   ausgeblendet
-4. Restliche Optionen nach Bedarf anpassen und speichern
+1. Edit the dashboard → **Add card**
+2. Search for "FlightRadar24 Split-Flap Card" and select it
+3. Pick the sensor in the editor — only arrivals and departures boards are
+   offered, other FlightRadar24 sensors are filtered out
+4. Adjust the remaining options and save
 
-Ab Home Assistant 2026.6 geht es noch direkter: beim Hinzufügen einer Karte
-zuerst den Sensor auswählen – diese Karte wird dann automatisch vorgeschlagen.
+From Home Assistant 2026.6 there is an even shorter route: when adding a card,
+pick the sensor first and this card offers itself automatically.
 
-> **Zwei Tafeln nebeneinander?** Jede Tafel als **eigene Karte** einfügen, nicht
-> über eine Stapel-Karte (`vertical-stack`) kombinieren. Eine Stapel-Karte meldet
-> Home Assistant ihre eigene Größe für die ganze Gruppe, wodurch die Höhe der
-> enthaltenen Tafeln nicht mehr richtig berechnet wird und der Abschnitt in den
-> darunterliegenden überläuft.
+> **Two boards side by side?** Add each board as its **own card**; don't combine
+> them in a stack card (`vertical-stack`). A stack reports its own size to Home
+> Assistant for the whole group, so the height of the boards inside it is no
+> longer calculated correctly and the section overflows into the one below.
 
-## Optionen
+## Options
 
-Alle Optionen stehen im visuellen Editor zur Verfügung. Die YAML-Namen sind hier
-nur als Referenz aufgeführt – etwa zum Nachschlagen im Code-Editor.
+Every option is available in the visual editor. The YAML names below are listed
+for reference only — for looking things up in the code editor, for instance.
 
-| Option | Standard | Bedeutung |
+| Option | Default | Meaning |
 |---|---|---|
-| `entity` | – | Ankunfts- oder Abflug-Sensor (erforderlich) |
-| `title` | automatisch | Überschrift; leer = Richtung der Tafel |
-| `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
-| `max_flights` | `8` | Anzahl angezeigter Flüge |
+| `entity` | – | Arrivals or departures sensor (required) |
+| `title` | automatic | Heading; empty = the board's direction |
+| `language` | HA language | `en`, `de`, `es`, `fr` |
+| `max_flights` | `8` | Number of flights shown |
 | `board` | `auto` | `auto`, `arrivals`, `departures` |
 | `theme` | `auto` | `auto`, `dark`, `light` |
-| `flip_duration` | `800` | Dauer der Flip-Animation (ms) |
-| `flip_delay` | `50` | Verzögerung zwischen Zeichen (ms) |
-| `visible_fields` | alle | Sichtbare Spalten (siehe Editor) |
+| `accent_color` | theme colour | Custom accent colour |
+| `rail_style` | `accent` | `accent`, `solid`, `rainbow`, `none` |
+| `flip_style` | `flip` | `flip`, `scramble` |
+| `flip_duration` | `800` | Flip animation duration (ms) |
+| `flip_delay` | `50` | Delay between characters (ms) |
+| `visible_fields` | all | Which columns are shown |
 
-### Ankunft oder Abflug
+### Arrivals or departures
 
-Die Card erkennt selbst, ob der gewählte Sensor eine Ankunfts- oder
-Abflugtafel ist, und passt sich an:
+The card works out for itself whether the selected sensor is an arrivals or a
+departures board, and adapts:
 
-| | Ankunft | Abflug |
+| | Arrivals | Departures |
 |---|---|---|
-| Spaltenüberschrift | `VON` | `NACH` |
-| Angezeigte Zeit | geplante Ankunft | geplanter Abflug |
-| Automatischer Titel | `ANKUNFT` | `ABFLUG` |
+| Column heading | `FROM` | `TO` |
+| Time shown | scheduled arrival | scheduled departure |
+| Automatic title | `ARRIVALS` | `DEPARTURES` |
 
-Erkannt wird das am Icon des Sensors, das die Integration je Richtung
-vorgibt. Nur falls das fehlschlägt – etwa weil das Icon in Home Assistant
-überschrieben wurde – lässt sich die Richtung im Editor unter
-**Richtung der Tafel** fest vorgeben.
+This is detected from the sensor's icon, which the integration sets per
+direction. Only if that fails — because the icon was overridden in Home
+Assistant, for example — set the direction explicitly under **Board direction**
+in the editor.
 
-Ein Flug nennt immer nur den *anderen* Flughafen: Auf einer Ankunftstafel
-ist das die Herkunft, auf einer Abflugtafel das Ziel. Deshalb gibt es genau
-eine Flughafen-Spalte, deren Beschriftung sich mit der Richtung ändert.
+A flight only ever names the *other* airport: the origin on an arrivals board,
+the destination on a departures board. That is why there is exactly one airport
+column, whose heading changes with the direction.
 
-## Unterstützte Entities
+## Supported entities
 
-Diese Card ist eine Ankunfts-/Abflugtafel und arbeitet mit den Airport-Sensoren der Integration:
+This card is an arrivals/departures board and works with the integration's
+airport sensors:
 
-- `sensor.flightradar24_airport_arrivals` – Ankunft eines Flughafens
-- `sensor.flightradar24_airport_departures` – Abflug eines Flughafens
+- `sensor.flightradar24_airport_arrivals` — arrivals at an airport
+- `sensor.flightradar24_airport_departures` — departures from an airport
 
-Angezeigt werden können: Zeit, Flugnummer, Herkunft/Ziel, Status und Flugzeugtyp.
+It can show: time, expected time, flight number, origin/destination, status and
+aircraft type.
 
-Die Area-Sensoren der Integration (`current_in_area`, `entered_area`, `exited_area`, `additional_tracked`) werden von dieser Card bewusst nicht unterstützt – sie liefern Live-Positionsdaten statt Fahrplandaten und passen nicht zum Format einer Anzeigetafel. Die Sensoren selbst bleiben davon unberührt und können weiterhin in anderen Karten und Automationen genutzt werden.
+The integration's area sensors (`current_in_area`, `entered_area`,
+`exited_area`, `additional_tracked`) are deliberately not supported — they carry
+live position data rather than schedule data, which doesn't fit a departure
+board. The sensors themselves are unaffected and remain available for other
+cards and automations.
 
-## Ankunft und Abflug zusammen anzeigen
+## Showing arrivals and departures together
 
-Beide Tafeln jeweils als **eigene Karte** hinzufügen und im Dashboard
-untereinander anordnen. Nicht über eine Stapel-Karte kombinieren – siehe den
-Hinweis oben.
+Add each board as its **own card** and arrange them one below the other on the
+dashboard. Don't combine them in a stack card — see the note above.
 
-## Problembehandlung
+## Delays
 
-**Card wird nicht angezeigt**
-1. FlightRadar24-Integration installiert und konfiguriert?
-2. Browser-Konsole (F12) auf Fehler beim Laden der Ressource prüfen
-3. Browser-Cache leeren (Strg+F5)
+The expected time is shown next to the scheduled one — but only when it differs.
+So a filled cell in that column always means: this flight is not running to plan.
 
-**Keine Flüge sichtbar**
-- **Entwicklerwerkzeuge** → **Zustände** → prüfen, ob der Sensor ein `flights`-Attribut mit Einträgen liefert
+The status column summarises what that means:
 
-**Karte läuft in den darunterliegenden Abschnitt über**
-- Tritt auf, wenn die Karte in einer Stapel-Karte (`vertical-stack`,
-  `grid`, …) steckt: die Stapel-Karte meldet Home Assistant ihre eigene
-  Größe für die ganze Gruppe. Jede Tafel als eigene Karte einfügen.
-
-**Animation wirkt ruckelig**
-- `max_flights` reduzieren oder das Scan-Interval der FlightRadar24-Integration auf mindestens 60 Sekunden erhöhen
-
-Weitere Details in [INSTALLATION.md](INSTALLATION.md).
-
-## Verspätungen
-
-Neben der geplanten Zeit steht die erwartete – aber nur, wenn sie abweicht.
-Eine gefüllte Zelle in dieser Spalte heißt also immer: dieser Flug läuft
-nicht nach Plan.
-
-Die Statusspalte fasst zusammen, was das bedeutet:
-
-| Anzeige | Bedeutung |
+| Display | Meaning |
 |---|---|
-| `PÜNKTLICH` | weniger als 5 Minuten Abweichung |
-| `+8 MIN` | 8 Minuten später als geplant |
-| `-12 MIN` | 12 Minuten früher als geplant |
-| `PLANMÄSSIG` | noch keine Schätzung verfügbar |
-| `GELANDET` / `ABGEFLOGEN` | bereits erfolgt |
-| `ANNULLIERT` / `UMGELEITET` | Flug findet nicht wie geplant statt |
+| `ON TIME` | less than 5 minutes off schedule |
+| `+8 MIN` | 8 minutes later than scheduled |
+| `-12 MIN` | 12 minutes earlier than scheduled |
+| `SCHEDULED` | no estimate available yet |
+| `LANDED` / `DEPARTED` | already happened |
+| `CANCELLED` / `DIVERTED` | not running as planned |
 
-Verspätungen und Annullierungen sind rot, pünktliche Flüge grün. Die Farbe
-ergänzt den Text nur – die Aussage steht immer auch als Wort da.
+Delays and cancellations are red, on-time flights green. The colour only
+supplements the text — the meaning is always spelled out in words as well.
 
-Ein Hinweis zur Breite: Mit allen Spalten braucht die Tafel etwa 820 px.
-Auf schmaleren Karten lässt sie sich horizontal scrollen; wer das vermeiden
-will, blendet über `visible_fields` nicht benötigte Spalten aus.
+A note on width: with every column shown the board needs roughly 820 px. On
+narrower cards it scrolls horizontally; to avoid that, switch off columns you
+don't need.
 
-## Sprachen
+## Languages
 
-Mitgeliefert sind Englisch, Deutsch, Spanisch und Französisch. Ohne gesetzte
-Option `language` folgt die Card der Sprache von Home Assistant; für nicht
-unterstützte Sprachen fällt sie auf Englisch zurück.
+English, German, Spanish and French ship with the card. Without a `language`
+option the card follows the Home Assistant language, falling back to English for
+unsupported ones.
 
-Alle Texte – auch die des Konfigurationseditors – liegen in
-`dist/translations/<sprache>.json` und werden zur Laufzeit geladen. Eine neue
-Sprache erfordert daher keine Änderung am JavaScript: Datei kopieren,
-übersetzen, in `SUPPORTED_LANGUAGES` eintragen. Spanisch und Französisch sind
-bislang nicht muttersprachlich geprüft – Korrekturen sind willkommen.
+All text — including the configuration editor — lives in
+`dist/translations/<language>.json` and is loaded at runtime. Adding a language
+therefore needs no JavaScript change: copy a file, translate it, add it to
+`SUPPORTED_LANGUAGES`. Spanish and French have not been reviewed by native
+speakers yet — corrections are welcome.
 
-## Beitragen
+## Troubleshooting
 
-Beiträge sind willkommen – siehe [CONTRIBUTING.md](CONTRIBUTING.md). Bugs und Feature-Wünsche bitte als [Issue](https://github.com/GpsM2/flightradar24-splitflap-card/issues) melden.
+**Card doesn't appear**
+1. Is the FlightRadar24 integration installed and configured?
+2. Check the browser console (F12) for resource loading errors
+3. Clear the browser cache (Ctrl+F5)
+
+**No flights shown**
+- **Developer tools** → **States** → check that the sensor has a `flights`
+  attribute with entries
+
+**Card overflows into the section below**
+- Happens when the card sits inside a stack card (`vertical-stack`, `grid`, …):
+  the stack reports its own size to Home Assistant for the whole group. Add each
+  board as its own card.
+
+**Animation stutters**
+- Reduce the number of flights, or raise the FlightRadar24 integration's scan
+  interval to at least 60 seconds
+
+More detail in [INSTALLATION.md](INSTALLATION.md).
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Please report
+bugs and feature requests as an
+[issue](https://github.com/GpsM2/flightradar24-splitflap-card/issues).
 
 ## Credits
 
-- Basiert auf der [FlightRadar24 Home Assistant Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24) von AlexandrErohin
-- Inspiriert von klassischen mechanischen Flughafen-Anzeigetafeln
+- Built on the
+  [FlightRadar24 Home Assistant integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
+  by AlexandrErohin
+- Typeface: [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), SIL
+  Open Font License 1.1 — bundled as a subset, see
+  [dist/fonts/OFL.txt](dist/fonts/OFL.txt)
+- Inspired by classic mechanical airport boards
 
-## Lizenz
+## Licence
 
-MIT – siehe [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE)

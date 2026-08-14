@@ -1,111 +1,143 @@
-# Beitragen zum Projekt
+# Contributing
 
-Vielen Dank für dein Interesse, zu diesem Projekt beizutragen! 🎉
+Thanks for your interest in contributing to this project.
 
-## Wie kann ich beitragen?
+## How can I contribute?
 
-### Bug Reports
+### Bug reports
 
-Wenn du einen Bug gefunden hast:
+If you found a bug:
 
-1. Prüfe ob das Problem bereits als [Issue](https://github.com/GpsM2/flightradar24-splitflap-card/issues) existiert
-2. Falls nicht, erstelle ein neues Issue mit:
-   - Beschreibung des Problems
-   - Schritte zur Reproduktion
-   - Erwartetes vs. tatsächliches Verhalten
-   - Screenshots (falls relevant)
-   - Home Assistant Version
-   - Browser & Version
-   - Deine Konfiguration (ohne sensible Daten)
+1. Check whether it already exists as an
+   [issue](https://github.com/GpsM2/flightradar24-splitflap-card/issues)
+2. If not, open a new issue with:
+   - A description of the problem
+   - Steps to reproduce
+   - Expected vs. actual behaviour
+   - Screenshots (if relevant)
+   - Home Assistant version
+   - Browser and version
+   - Your configuration (without sensitive data)
 
-### Feature Requests
+### Feature requests
 
-Für neue Features:
+For new features:
 
-1. Prüfe ob es bereits einen Request gibt
-2. Erstelle ein Issue mit:
-   - Beschreibung des gewünschten Features
-   - Warum es nützlich wäre
-   - Beispiel-Konfiguration (falls relevant)
+1. Check whether a request already exists
+2. Open an issue with:
+   - A description of the feature
+   - Why it would be useful
+   - An example configuration (if relevant)
 
-### Pull Requests
+### Pull requests
 
-1. Forke das Repository
-2. Erstelle einen Branch für deine Änderung (`git checkout -b feature/amazing-feature`)
-3. Committe deine Änderungen (`git commit -m 'Add amazing feature'`)
-4. Pushe den Branch (`git push origin feature/amazing-feature`)
-5. Öffne einen Pull Request
+1. Fork the repository
+2. Create a branch for your change (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push the branch (`git push origin feature/amazing-feature`)
+5. Open a pull request
 
-#### Code-Style
+Direct pushes to `main` are blocked by a repository ruleset — a pull request is
+required, and the `lint-and-typecheck` check has to pass before it can be
+merged.
 
-- Verwende 2 Spaces für Einrückung
-- Kommentiere komplexen Code
-- Teste deine Änderungen gründlich
-- Aktualisiere die Dokumentation bei Bedarf
+#### Quality gates
+
+Before opening a pull request:
+
+```bash
+npm install
+npm run lint          # ESLint
+npm run typecheck     # tsc --checkJs, via JSDoc annotations
+npm run check:i18n    # translation invariants
+```
+
+All three run in CI on every pull request.
+
+#### Code style
+
+- 2 spaces for indentation
+- Comment code whose reason isn't obvious from reading it
+- Test your changes thoroughly
+- Update the documentation where needed
 
 #### Testing
 
-Teste deine Änderungen mit:
-- Verschiedenen Browsern (Chrome, Firefox, Safari)
-- Mobile und Desktop
-- Verschiedenen FlightRadar24 Sensoren
-- Verschiedenen Anzahlen von Flügen
+Test your changes against:
+- Several browsers (Chrome, Firefox, Safari)
+- Mobile and desktop
+- Both arrivals and departures sensors
+- Different numbers of flights
+- Light and dark mode
 
-## Entwicklungsumgebung
+## Project layout
 
-### Setup
+Everything shipped to users lives in `dist/`:
 
-1. Forke und klone das Repository
-2. Erstelle einen Symlink nach Home Assistant:
-   ```bash
-   ln -s /pfad/zum/repo/flightradar24-splitflap-card.js /pfad/zu/homeassistant/www/
-   ```
-3. Füge die Ressource in Home Assistant hinzu
-4. Entwickle mit aktiviertem Browser-Cache-Disable
+```
+dist/
+  flightradar24-splitflap-card.js
+  translations/{en,de,es,fr}.json
+  fonts/JetBrainsMono-Bold-subset.woff2
+```
 
-### Live-Reload
+HACS delivers that whole folder. Files in the repository root (`README.md`,
+`package.json`, `scripts/`, …) are development-only and are not delivered.
 
-Für schnellere Entwicklung:
+## Translations
 
-1. Öffne die Browser DevTools (F12)
-2. Gehe zu Network → Disable cache (bei geöffneten DevTools)
-3. Änderungen an der JS-Datei
-4. Seite neu laden
+All user-visible text lives in `dist/translations/<language>.json` — the board's
+own vocabulary and the configuration editor alike. Adding a language needs no
+JavaScript change beyond listing it in `SUPPORTED_LANGUAGES`.
 
-### Debugging
+Two invariants are enforced by `npm run check:i18n`:
 
-- Browser Console nutzen für JavaScript-Fehler
-- `console.log()` für Debugging
-- Home Assistant Logs für Backend-Fehler
+- the English fallback bundled in the card stays identical to
+  `translations/en.json`
+- every language defines exactly the same keys
 
-## Dokumentation
+Composed strings (for example `+8 MIN`) are built from templates with
+placeholders, never by concatenating a unit onto a number.
 
-Bei Änderungen bitte aktualisieren:
+## Documentation
 
-- `README.md` - Hauptdokumentation
-- `INSTALLATION.md` - Installationsanleitung
-- `CHANGELOG.md` - Liste der Änderungen
-- `info.md` - HACS Info
-- Inline-Kommentare im Code
+Please update, where relevant:
 
-## Versions-Schema
+- `README.md` — main documentation
+- `INSTALLATION.md` — installation guide
+- `CHANGELOG.md` — list of changes
+- `info.md` — HACS info
+- Inline comments in the code
 
-Wir folgen [Semantic Versioning](https://semver.org/):
+Everything in this repository is written in English.
 
-- **MAJOR** - Inkompatible API-Änderungen
-- **MINOR** - Neue Features (abwärtskompatibel)
-- **PATCH** - Bug Fixes
+## Versioning
 
-## Code of Conduct
+We follow [Semantic Versioning](https://semver.org/), without a `v` prefix on
+tags or milestones:
 
-Sei respektvoll und konstruktiv. Wir wollen eine einladende Community für alle.
+- **MAJOR** — incompatible API changes
+- **MINOR** — new features (backwards compatible)
+- **PATCH** — bug fixes
 
-## Lizenz
+Before 1.0.0 a backwards-incompatible change bumps MINOR rather than MAJOR.
 
-Durch deine Beiträge stimmst du zu, dass deine Arbeit unter der [MIT Lizenz](LICENSE) lizenziert wird.
+`CARD_VERSION` at the top of the card file is the version of record and is
+logged to the browser console on load. Bump it only for actual functional
+changes, never for documentation-only edits.
 
-## Fragen?
+Every release ships as a pre-release first and is promoted to final only after
+testing.
 
-Bei Fragen erstelle ein Issue oder kontaktiere die Maintainer.
+## Code of conduct
 
-Danke für deine Unterstützung! 🙏
+Be respectful and constructive. We want a welcoming community for everyone.
+
+## Licence
+
+By contributing you agree that your work is licensed under the
+[MIT licence](LICENSE).
+
+## Questions?
+
+Open an issue or contact the maintainer.

@@ -1,192 +1,195 @@
-# Installation & Einrichtung
+# Installation & setup
 
-## Schritt 1: Voraussetzungen prüfen
+## Step 1: check the prerequisites
 
-### FlightRadar24 Integration installieren
+### Install the FlightRadar24 integration
 
-Diese Card benötigt die [FlightRadar24 Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24).
+This card needs the
+[FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24).
 
-Falls noch nicht installiert:
+If it isn't installed yet:
 
-1. HACS öffnen
-2. Nach "FlightRadar24" suchen
-3. Integration installieren
-4. Home Assistant neu starten
-5. Integration konfigurieren (Einstellungen → Geräte & Dienste → Integration hinzufügen)
+1. Open HACS
+2. Search for "FlightRadar24"
+3. Install the integration
+4. Restart Home Assistant
+5. Configure the integration (Settings → Devices & services → Add integration)
 
-## Schritt 2: Split-Flap Card installieren
+## Step 2: install the Split-Flap Card
 
-### Via HACS (empfohlen)
+### Via HACS (recommended)
 
-1. HACS öffnen
-2. Auf "Frontend" klicken
-3. Drei-Punkte-Menü oben rechts → "Benutzerdefinierte Repositories"
-4. Repository-URL hinzufügen:
+1. Open HACS
+2. Click "Frontend"
+3. Three-dot menu at the top right → "Custom repositories"
+4. Add the repository URL:
    ```
    https://github.com/GpsM2/flightradar24-splitflap-card
    ```
-5. Kategorie: "Lovelace" auswählen
-6. "Hinzufügen" klicken
-7. Nach "FlightRadar24 Split-Flap Card" suchen
-8. Installieren
-9. Browser-Cache leeren (Strg+F5)
+5. Choose category "Lovelace"
+6. Click "Add"
+7. Search for "FlightRadar24 Split-Flap Card"
+8. Install
+9. Clear the browser cache (Ctrl+F5)
 
-### Manuelle Installation
+### Manual installation
 
-1. [Neueste Release](https://github.com/GpsM2/flightradar24-splitflap-card/releases) herunterladen
-2. Den gesamten Inhalt des `dist`-Ordners nach
-   `/config/www/flightradar24-splitflap-card/` kopieren (die JS-Datei und den
-   Ordner `translations/`)
+1. Download the [latest release](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
+2. Copy the entire contents of the `dist` folder to
+   `/config/www/flightradar24-splitflap-card/` — the JavaScript file plus the
+   `translations/` and `fonts/` folders
 3. In Home Assistant:
-   - **Einstellungen** → **Dashboards**
-   - Drei-Punkte-Menü → **Ressourcen**
-   - **Ressource hinzufügen**
+   - **Settings** → **Dashboards**
+   - Three-dot menu → **Resources**
+   - **Add resource**
    - URL: `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`
-   - Typ: **JavaScript-Modul**
-   - Speichern
-4. Browser-Cache leeren (Strg+F5)
+   - Type: **JavaScript module**
+   - Save
+4. Clear the browser cache (Ctrl+F5)
 
-## Schritt 3: Card zum Dashboard hinzufügen
+## Step 3: add the card to a dashboard
 
-Die Karte wird über die Oberfläche eingerichtet – YAML ist nicht nötig.
+The card is set up through the interface — no YAML needed.
 
-1. Dashboard bearbeiten → **Karte hinzufügen**
-2. Nach „FlightRadar24 Split-Flap Card" suchen und auswählen
-3. Im Editor den gewünschten Sensor wählen. Zur Auswahl stehen nur die
-   Ankunfts- und Abflugtafeln – die Area- und Statistik-Sensoren der
-   Integration werden ausgeblendet, weil sie keine Fahrplandaten liefern.
-4. Optionen anpassen und speichern
+1. Edit the dashboard → **Add card**
+2. Search for "FlightRadar24 Split-Flap Card" and select it
+3. Pick the sensor in the editor. Only the arrivals and departures boards are
+   offered — the integration's area and statistics sensors are filtered out
+   because they carry no schedule data.
+4. Adjust the options and save
 
-Ab Home Assistant 2026.6 geht es noch direkter: beim Hinzufügen einer Karte
-zuerst den Sensor auswählen – diese Karte wird dann automatisch vorgeschlagen.
+From Home Assistant 2026.6 there is an even shorter route: when adding a card,
+pick the sensor first and this card offers itself automatically.
 
-## Schritt 4: Optionen anpassen
+## Step 4: adjust the options
 
-Alle Optionen stehen im visuellen Editor. Die YAML-Namen dienen nur als
-Referenz, etwa zum Nachschlagen im Code-Editor:
+Every option is available in the visual editor. The YAML names serve as a
+reference, for looking things up in the code editor:
 
-| Option | Standard | Bedeutung |
+| Option | Default | Meaning |
 |---|---|---|
-| `entity` | – | Ankunfts- oder Abflug-Sensor (erforderlich) |
-| `title` | automatisch | Überschrift; leer = Richtung der Tafel |
-| `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
-| `max_flights` | `8` | Anzahl angezeigter Flüge (1–20) |
+| `entity` | – | Arrivals or departures sensor (required) |
+| `title` | automatic | Heading; empty = the board's direction |
+| `language` | HA language | `en`, `de`, `es`, `fr` |
+| `max_flights` | `8` | Number of flights shown (1–20) |
 | `board` | `auto` | `auto`, `arrivals`, `departures` |
 | `theme` | `auto` | `auto`, `dark`, `light` |
-| `flip_duration` | `800` | Dauer der Flip-Animation (ms) |
-| `flip_delay` | `50` | Verzögerung zwischen Zeichen (ms) |
-| `visible_fields` | alle | Sichtbare Spalten |
+| `accent_color` | theme colour | Custom accent colour |
+| `rail_style` | `accent` | `accent`, `solid`, `rainbow`, `none` |
+| `flip_style` | `flip` | `flip`, `scramble` |
+| `flip_duration` | `800` | Flip animation duration (ms) |
+| `flip_delay` | `50` | Delay between characters (ms) |
+| `visible_fields` | all | Which columns are shown |
 
-### Unterstützte Sensoren
+### Supported sensors
 
-- `sensor.flightradar24_airport_arrivals` – Ankunft eines Flughafens
-- `sensor.flightradar24_airport_departures` – Abflug eines Flughafens
+- `sensor.flightradar24_airport_arrivals` — arrivals at an airport
+- `sensor.flightradar24_airport_departures` — departures from an airport
 
-Die Area-Sensoren der Integration (`current_in_area`, `entered_area`,
-`exited_area`, `additional_tracked`) werden von dieser Card nicht unterstützt –
-sie liefern Live-Positionsdaten statt Fahrplandaten. Die Sensoren selbst
-bleiben unverändert nutzbar, nur eben in anderen Karten.
+The integration's area sensors (`current_in_area`, `entered_area`,
+`exited_area`, `additional_tracked`) are not supported by this card — they carry
+live position data rather than schedule data. The sensors themselves remain
+usable as before, just in other cards.
 
-### Ankunft und Abflug zusammen anzeigen
+### Showing arrivals and departures together
 
-Beide Tafeln jeweils als **eigene Karte** hinzufügen und im Dashboard
-untereinander anordnen.
+Add each board as its **own card** and arrange them one below the other on the
+dashboard.
 
-> **Nicht** über eine Stapel-Karte (`vertical-stack`, `grid`, …) kombinieren:
-> Eine Stapel-Karte meldet Home Assistant ihre eigene Größe für die ganze
-> Gruppe, wodurch die Höhe der enthaltenen Tafeln nicht mehr richtig berechnet
-> wird und der Abschnitt in den darunterliegenden überläuft.
+> **Don't** combine them in a stack card (`vertical-stack`, `grid`, …): a stack
+> reports its own size to Home Assistant for the whole group, so the height of
+> the boards inside it is no longer calculated correctly and the section
+> overflows into the one below.
 
-## Problembehandlung
+## Troubleshooting
 
-### Card erscheint nicht
+### The card doesn't appear
 
-**Prüfe die Browser-Konsole** (F12):
+**Check the browser console** (F12):
 
-- Gibt es JavaScript-Fehler?
-- Wurde die Ressource geladen?
+- Are there JavaScript errors?
+- Was the resource loaded?
 
-**Lösung:**
-1. Browser-Cache leeren (Strg+F5)
-2. Home Assistant neu starten
-3. Ressource neu hinzufügen
+**Fix:**
+1. Clear the browser cache (Ctrl+F5)
+2. Restart Home Assistant
+3. Add the resource again
 
-### Keine Daten sichtbar
+### No data visible
 
-**Prüfe den Sensor:**
+**Check the sensor:**
 
-1. **Entwicklerwerkzeuge** → **Zustände**
-2. Suche nach `sensor.flightradar24_airport_arrivals`
-3. Prüfe ob `flights` Attribut Daten enthält
+1. **Developer tools** → **States**
+2. Look for `sensor.flightradar24_airport_arrivals`
+3. Check that the `flights` attribute contains data
 
-**Karte läuft in den darunterliegenden Abschnitt über**
+**Possible causes:**
+- No flights currently reported for this airport
+- The FlightRadar24 integration isn't configured correctly
+- No airport set in the integration
 
-Tritt auf, wenn die Karte in einer Stapel-Karte steckt. Jede Tafel als eigene
-Karte einfügen.
+### The card overflows into the section below
 
-**Mögliche Ursachen:**
-- Aktuell keine Flüge für diesen Flughafen gemeldet
-- FlightRadar24 Integration nicht korrekt konfiguriert
-- Kein Flughafen in der Integration hinterlegt
+Happens when the card sits inside a stack card. Add each board as its own card.
 
-### Animation ruckelt
+### The animation stutters
 
-**Reduziere die Anzahl der Flüge** im Editor (Option „Maximale Anzahl Flüge").
+**Reduce the number of flights** in the editor (option "Maximum flights").
 
-**Oder verlängere das Update-Intervall:**
+**Or raise the update interval:**
 
-In der FlightRadar24 Integration:
-- Einstellungen → Geräte & Dienste → FlightRadar24
-- Scan-Interval auf mindestens 60 Sekunden erhöhen
+In the FlightRadar24 integration:
+- Settings → Devices & services → FlightRadar24
+- Raise the scan interval to at least 60 seconds
 
-### Falsche Daten
+### Wrong data
 
-**Cache-Problem:**
-1. Browser-Cache komplett leeren
-2. Home Assistant neu starten
-3. In Inkognito-Modus testen
+**Caching problem:**
+1. Clear the browser cache completely
+2. Restart Home Assistant
+3. Test in a private window
 
-## Empfohlene Einstellungen
+## Recommended settings
 
-Alles davon im visuellen Editor einstellbar.
+All of these are available in the visual editor.
 
-| Einsatz | Anzahl Flüge | Dauer der Animation | Verzögerung |
+| Use case | Flights | Animation duration | Delay |
 |---|---|---|---|
-| Realistisch | 8 | 800 ms – echte Tafeln sind etwa so schnell | 60 ms |
-| Schwächere Geräte | 5 | 600 ms | 30 ms |
-| Große Displays | 15 | 1000 ms | 100 ms |
-| Smartphone | 4 | 800 ms | 50 ms |
+| Realistic | 8 | 800 ms — real boards run about this fast | 60 ms |
+| Weaker devices | 5 | 600 ms | 30 ms |
+| Large displays | 15 | 1000 ms | 100 ms |
+| Phone | 4 | 800 ms | 50 ms |
 
-## Tipps & Tricks
+## Tips
 
-1. **Update-Interval der Integration anpassen**  
-   60-120 Sekunden sind optimal für die Animation
+1. **Adjust the integration's update interval**
+   60–120 seconds works well with the animation
 
-2. **Mehrere Regionen überwachen**  
-   Erstelle mehrere FlightRadar24 Geräte für verschiedene Flughäfen
+2. **Monitor several airports**
+   Create multiple FlightRadar24 devices for different airports
 
-3. **Automationen nutzen**  
-   Sende Benachrichtigungen wenn neue Flüge erscheinen
+3. **Use automations**
+   Send notifications when new flights appear
 
-4. **Theme anpassen**  
-   Die Card passt sich automatisch an dein Theme an
+4. **Themes**
+   The card follows your Home Assistant theme automatically
 
-5. **Mobile Optimierung**  
-   Auf Smartphones weniger Flüge anzeigen lassen
+5. **Mobile**
+   Show fewer flights on phones
 
 ## Support
 
-Bei Problemen:
+If something goes wrong:
 
-1. [Issues auf GitHub](https://github.com/GpsM2/flightradar24-splitflap-card/issues) durchsuchen
-2. Neues Issue erstellen mit:
-   - Home Assistant Version
-   - Browser & Version
-   - Fehlermeldungen aus der Konsole
-   - Deine Konfiguration (ohne sensible Daten)
+1. Search the [issues on GitHub](https://github.com/GpsM2/flightradar24-splitflap-card/issues)
+2. Open a new issue with:
+   - Home Assistant version
+   - Browser and version
+   - Error messages from the console
+   - Your configuration (without sensitive data)
 
-## Weiterführende Links
+## Further reading
 
-- [FlightRadar24 Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
-- [Home Assistant Lovelace Dokumentation](https://www.home-assistant.io/lovelace/)
-- [HACS Dokumentation](https://hacs.xyz/)
+- [FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
+- [Home Assistant Lovelace documentation](https://www.home-assistant.io/lovelace/)
+- [HACS documentation](https://hacs.xyz/)

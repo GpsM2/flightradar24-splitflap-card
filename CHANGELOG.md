@@ -1,252 +1,237 @@
 # Changelog
 
-Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
+All notable changes to this project are documented in this file.
 
-Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
-und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Geändert
-- Die Tafel sieht jetzt wie ein einzelnes physisches Objekt aus: beschriftete
-  und leere Klappen sind identisch gestaltet, die Faltlinie läuft durch das
-  Zeichen statt dahinter, und die Klappen sind deutlich weniger hoch – ein
-  Großbuchstabe füllt jetzt rund zwei Drittel der Klappenhöhe statt einem
-  Drittel.
-- Eigene Schriftart: JetBrains Mono Bold, serifenlos, wird aus dem Repository
-  geladen. Es werden keine Schriften von Dritten nachgeladen.
-- Alle Zeichen auf der Tafel erscheinen in Großbuchstaben.
+### Changed
+- The board now reads as a single physical object: printed and blank flaps are
+  styled identically, the fold line runs through the character rather than
+  behind it, and the flaps are considerably less tall — a capital letter now
+  fills roughly two thirds of a flap's height instead of one third.
+- Own typeface: JetBrains Mono Bold, sans-serif, served from this repository.
+  No fonts are loaded from third parties.
+- Every character on the board is rendered in uppercase.
+- German board labels are now singular: `ANKUNFT` and `ABFLUG` instead of
+  `ANKÜNFTE` and `ABFLÜGE`.
+- Documentation switched to setting the card up through the interface. The YAML
+  examples are gone — in particular the stack-card example, which caused Home
+  Assistant to miscalculate the card's height so the section overflowed into
+  the one below.
+- All documentation in this repository is now written in English.
 
-### Hinzugefügt
-- Randstreifen wählbar: Akzentfarbe auslaufend oder durchgehend, Regenbogen
-  oder ganz aus.
-- Eigene Akzentfarbe einstellbar.
-- Zweite Animationsart: Die Klappen können die Zeichen bis zum Ziel
-  durchlaufen, statt direkt umzuschlagen.
-
-### Geändert
-- Deutsche Beschriftung der Tafeln auf Einzahl umgestellt: `ANKUNFT` und
-  `ABFLUG` statt `ANKÜNFTE` und `ABFLÜGE`.
-- Dokumentation auf die Einrichtung über die Oberfläche umgestellt. Die
-  YAML-Beispiele sind entfernt – insbesondere das Beispiel mit der
-  Stapel-Karte, das dazu führte, dass Home Assistant die Höhe der Karte
-  falsch berechnete und der Abschnitt in den darunterliegenden überlief.
+### Added
+- Selectable edge bars: accent colour fading or solid, rainbow, or off.
+- Custom accent colour.
+- A second animation style: flaps can roll through the characters up to the
+  target instead of flipping straight to it.
 
 ## [0.5.0] - 2026-08-15
 
-Promoted from 0.5.0-beta.2 after maintainer testing, no code changes. See
-the beta entries below for what's actually in this release.
+Promoted from 0.5.0-beta.2 after maintainer testing, no code changes. See the
+beta entries below for what's actually in this release.
 
 ## [0.5.0-beta.2] - 2026-08-15
 
-### Behoben
-- Einzelne Zeichen behielten nach einer Aktualisierung die falsche Farbe
-  (betraf hellen und dunklen Modus). Die Markierung für leere Klappen
-  wurde beim Umblättern nicht mitgeführt, sodass Kacheln mit Buchstaben
-  weiterhin als leer galten – und damit weder eingefärbt wurden noch den
-  richtigen Hintergrund bekamen.
-- Wurde eine Spalte ausgeblendet, endete die Tafel mitten in der Karte
-  statt am Rand. Die Zeilen laufen jetzt unabhängig von der Spaltenzahl
-  bis zum Kartenrand durch.
-- Die Zeichen saßen minimal zu hoch auf den Klappen und damit über der
-  Faltlinie, die eigentlich mittig durch das Zeichen laufen soll.
+### Fixed
+- Individual characters kept the wrong colour after an update (in both light
+  and dark mode). The marker for blank flaps wasn't carried over when a flap
+  turned, so tiles showing letters still counted as blank — and were therefore
+  neither coloured nor given the right background.
+- With a column hidden, the board stopped in the middle of the card instead of
+  at its edge. Rows now run to the card's edge regardless of how many columns
+  are shown.
+- Characters sat slightly too high on the flaps, and so above the fold line
+  that should run through the middle of the character.
 
 ## [0.5.0-beta.1] - 2026-08-14
 
-### Behoben
-- Der Konfigurationseditor stürzte mit „Cannot read properties of undefined
-  (reading 'visible_fields')" ab, wenn Home Assistant die Entity-Daten vor
-  der Konfiguration lieferte. Der Fehler bestand seit mindestens 0.3.
-- Die Kartengröße wurde über `getLayoutOptions()` gemeldet, das in Home
-  Assistant als veraltet markiert ist, und aus einer Pixel-Schätzung
-  berechnet. Stattdessen kommt jetzt `getGridOptions()` mit `rows: "auto"`
-  zum Einsatz – Home Assistant misst die tatsächliche Höhe der Karte,
-  statt sich auf eine Umrechnung zu verlassen.
+### Fixed
+- The configuration editor crashed with "Cannot read properties of undefined
+  (reading 'visible_fields')" when Home Assistant supplied the entity data
+  before the configuration. The bug had been present since at least 0.3.
+- The card size was reported through `getLayoutOptions()`, which is marked
+  deprecated in Home Assistant, and calculated from a pixel estimate.
+  `getGridOptions()` with `rows: "auto"` is used instead — Home Assistant
+  measures the card's actual height rather than relying on a conversion.
 
-### Geändert
-- Der Konfigurationseditor nutzt jetzt Home Assistants eigene
-  Formular-Komponente statt eines handgebauten Formulars: native Optik,
-  echte Entity-Suche und weniger eigener Code. Die Filterung auf
-  Ankunfts-/Abflug-Sensoren bleibt erhalten.
+### Changed
+- The configuration editor now uses Home Assistant's own form component instead
+  of a hand-built form: native appearance, a real entity search and less code
+  of our own. The filtering to arrivals/departures sensors is preserved.
 
-### Hinzugefügt
-- Die Card schlägt sich in Home Assistants Entity-Auswahl beim Hinzufügen
-  einer Karte selbst vor, wenn ein Ankunfts- oder Abflug-Sensor gewählt
-  wird (ab Home Assistant 2026.6).
+### Added
+- The card offers itself in Home Assistant's entity picker when adding a card,
+  once an arrivals or departures sensor is selected (Home Assistant 2026.6+).
 
 ## [0.4.1] - 2026-08-14
 
-Promoted from 0.4.1-beta.1 after maintainer testing, no code changes. See
-that entry below for what's actually in this release.
+Promoted from 0.4.1-beta.1 after maintainer testing, no code changes. See that
+entry below for what's actually in this release.
 
 ## [0.4.1-beta.1] - 2026-08-14
 
-### Behoben
-- `getCardSize()`/`getLayoutOptions()` gaben feste Werte zurück, unabhängig
-  von `max_flights`. Home Assistant konnte die Höhe des reservierten
-  Bereichs (Masonry- wie Sections-Ansicht) dadurch nicht an die Karte
-  anpassen. Beide werden jetzt aus `max_flights` berechnet.
-- Der Flugzeugtyp wurde bei 12 Zeichen hart abgeschnitten – bei 28 von 29
-  echten Modellen in Produktivdaten, meist mit einem hängenden Bindestrich
-  am Ende (`Airbus A320-`). Die Spalte ist jetzt 14 Zeichen breit und
-  schneidet an der letzten Wort- oder Bindestrich-Grenze.
-- Der Titel in der Kopfzeile saß 22 px links der Mitte, weil Icon- und
-  Uhr-Spalte unterschiedlich breit waren. Beide teilen sich jetzt eine
-  gemeinsame Breite.
+### Fixed
+- `getCardSize()`/`getLayoutOptions()` returned fixed values regardless of
+  `max_flights`. Home Assistant could therefore not size the reserved area
+  (in Masonry or Sections view) to the card. Both are now derived from
+  `max_flights`.
+- The aircraft type was cut off hard at 12 characters — affecting 28 of 29 real
+  models in production data, usually leaving a dangling hyphen (`Airbus A320-`).
+  The column is now 14 characters wide and cuts at the last word or hyphen
+  boundary.
+- The masthead title sat 22 px left of centre because the icon and clock tracks
+  had different widths. Both now share one width.
 
 ## [0.4.0] - 2026-08-14
 
-Promoted from 0.4.0-beta.1 after maintainer testing, no code changes. See
-that entry below for what's actually in this release.
+Promoted from 0.4.0-beta.1 after maintainer testing, no code changes. See that
+entry below for what's actually in this release.
 
 ## [0.4.0-beta.1] - 2026-08-14
 
-### Hinzugefügt
-- Verspätungsanzeige: Neben der geplanten steht jetzt die erwartete Zeit,
-  sofern sie abweicht. Die Statusspalte zeigt die Abweichung in Minuten
-  (`+8 MIN`, `-12 MIN`) bzw. `PÜNKTLICH`, `GELANDET`, `ANNULLIERT`.
-- Farbcodierung des Status: Verspätungen und Annullierungen rot, pünktliche
-  Flüge grün. Die Farbe ergänzt den Text, ersetzt ihn nicht.
-- Uhrzeit und ein Richtungssymbol (Start/Landung) im Kopf der Tafel.
-- Die Airline-Kennung der Flugnummer ist farblich abgesetzt.
-- Annullierte Flüge zeigen statt einer Uhrzeit Striche.
+### Added
+- Delay indicator: the expected time is now shown next to the scheduled one
+  whenever it differs. The status column shows the deviation in minutes
+  (`+8 MIN`, `-12 MIN`) or `ON TIME`, `LANDED`, `CANCELLED`.
+- Colour-coded status: delays and cancellations red, on-time flights green. The
+  colour supplements the text rather than replacing it.
+- Clock and a direction mark (take-off/landing) in the board's masthead.
+- The airline prefix of the flight number is picked out in the accent colour.
+- Cancelled flights show dashes instead of a time.
 
-### Behoben
-- Spalten liefen auf schmalen Karten aus dem Raster und die Beschriftungen
-  passten nicht mehr zu den Daten. Kopfzeile und Zeilen teilten sich zwei
-  getrennte Scroll-Container; beim Scrollen stand eine Spalte bis zu 150 px
-  neben ihrer Überschrift. Beides liegt jetzt in einem gemeinsamen Raster.
-- Die Meldung „Keine Flüge verfügbar" erschien nie – bei leerer Flugliste,
-  nicht verfügbarer oder fehlender Entity blieb die Tafel einfach leer.
-- Laufende Flip-Animationen wurden beim Entfernen der Karte nicht gestoppt.
+### Fixed
+- Columns ran out of the grid on narrow cards and the headings no longer matched
+  the data. The header row and the rows were two separate scroll containers;
+  when scrolled, a column could sit up to 150 px away from its heading. Both now
+  live in one shared grid.
+- The "No flights available" message never appeared — with an empty flight list,
+  an unavailable or a missing entity the board simply stayed blank.
+- Running flip animations were not stopped when the card was removed.
 
-### Hinzugefügt
-- Heller und dunkler Modus. Ohne Angabe folgt die Card dem Theme von Home
-  Assistant; mit `theme: dark` bzw. `theme: light` lässt sich das
-  übersteuern.
-- Die Tafel ist jetzt responsiv: die Kachelgröße richtet sich danach, wie
-  viele Zeichen tatsächlich Platz finden müssen. Erst unterhalb einer
-  Mindestgröße wird horizontal gescrollt.
+### Added
+- Light and dark mode. Without an explicit setting the card follows the Home
+  Assistant theme; `theme: dark` or `theme: light` overrides it.
+- The board is now responsive: flap size follows how many characters actually
+  have to fit. Only below a minimum size does it scroll horizontally.
 
-### Geändert
-- Neues Tafel-Design: durchgehendes Kachelraster, in dem auch ungenutzte
-  Positionen als leere Klappen sichtbar bleiben, mit Akzentleisten an
-  Ober- und Unterkante.
+### Changed
+- New board design: a continuous flap grid in which unused positions stay
+  visible as blank flaps, with accent bars along the top and bottom edges.
 
 ## [0.3.0] - 2026-08-14
 
-Promoted from 0.3.0-beta.1 after maintainer testing, no code changes. See
-that entry below for what's actually in this release.
+Promoted from 0.3.0-beta.1 after maintainer testing, no code changes. See that
+entry below for what's actually in this release.
 
 ## [0.3.0-beta.1] - 2026-08-14
 
-### Hinzugefügt
-- Alle Texte liegen jetzt in `dist/translations/<sprache>.json` und werden
-  zur Laufzeit geladen. Das gilt auch für den Konfigurationseditor, der
-  bisher durchgehend englisch war. Eine neue Sprache erfordert damit keine
-  Änderung am JavaScript mehr.
-- Ohne gesetzte Option `language` folgt die Card der Sprache von Home
-  Assistant (`hass.locale.language`) statt fest Englisch zu verwenden.
+### Added
+- All text now lives in `dist/translations/<language>.json` and is loaded at
+  runtime. This includes the configuration editor, which had been English
+  throughout. Adding a language therefore no longer requires a JavaScript
+  change.
+- Without a `language` option the card follows the Home Assistant language
+  (`hass.locale.language`) instead of defaulting to English.
 
-### Behoben
-- Zeiten wurden im englischen Gebietsschema als `07:50 AM` dargestellt und
-  liefen aus der Zeitspalte heraus. Anzeigetafeln nutzen jetzt überall das
-  24-Stunden-Format.
-- Der Status wurde mitten im Wort abgeschnitten und blieb immer englisch:
-  aus „Estimated dep 07:40" wurde „Estimated de". Die Card wertet jetzt
-  das maschinenlesbare `status`-Feld aus und zeigt den übersetzten Status
-  (`ERWARTET`, `PLANMÄSSIG`, `ANNULLIERT`, `GELANDET`, `ABGEFLOGEN`,
-  `VERSPÄTET`, `UMGELEITET`). Unbekannte Status fallen auf den
-  Originaltext zurück, der dann an einer Wortgrenze gekürzt wird.
-- Auf einer Abflugtafel war die Spalte `VON` mit dem *Ziel* des Fluges
-  gefüllt. Die Card erkennt jetzt die Richtung des Sensors und beschriftet
-  die Spalte entsprechend `VON` (Ankünfte) bzw. `NACH` (Abflüge).
-- Auf einer Abflugtafel zeigte die Zeitspalte die geplante *Ankunft* am
-  Zielflughafen statt des Abflugs. Beispiel: Ein Flug mit
-  „Estimated dep 07:40" wurde als `10:55` angezeigt.
-- Der automatische Titel blieb generisch (`FLÜGE`), statt auf `ANKÜNFTE`
-  bzw. `ABFLÜGE` umzustellen, sobald die Entity verfügbar war.
+### Fixed
+- Times were rendered as `07:50 AM` in the English locale and overflowed the
+  time column. Boards now use the 24-hour format everywhere.
+- The status was cut off mid-word and always stayed English: "Estimated dep
+  07:40" became "Estimated de". The card now reads the machine-readable
+  `status` field and shows the translated status (`EXPECTED`, `SCHEDULED`,
+  `CANCELLED`, `LANDED`, `DEPARTED`, `DELAYED`, `DIVERTED`). Unknown statuses
+  fall back to the original text, cut at a word boundary.
+- On a departures board the `FROM` column was filled with the flight's
+  *destination*. The card now detects the sensor's direction and labels the
+  column `FROM` (arrivals) or `TO` (departures) accordingly.
+- On a departures board the time column showed the scheduled *arrival* at the
+  destination airport rather than the departure. Example: a flight with
+  "Estimated dep 07:40" was displayed as `10:55`.
+- The automatic title stayed generic (`FLIGHTS`) instead of switching to
+  `ARRIVALS` or `DEPARTURES` once the entity became available.
 
-### Hinzugefügt
-- Konfigurationsoption `board` (`auto`/`arrivals`/`departures`). Die
-  Richtung wird normalerweise selbst erkannt; die Option ist nur nötig,
-  falls das Icon des Sensors überschrieben wurde.
+### Added
+- Configuration option `board` (`auto`/`arrivals`/`departures`). The direction
+  is normally detected automatically; the option is only needed if the sensor's
+  icon has been overridden.
 
-### Geändert
-- Die ausgelieferten Dateien liegen jetzt im Ordner `dist/`. Bei einer
-  HACS-Installation ändert sich dadurch nichts. Bei manueller Installation
-  muss der gesamte `dist`-Inhalt kopiert werden, und die Ressourcen-URL
-  lautet nun `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`.
-- `visible_fields.from` und `visible_fields.to` sind zu einer Spalte
-  `visible_fields.airport` zusammengefasst. Ein Flug nennt immer nur den
-  anderen Flughafen – der eigene steht nie in den Daten –, sodass die
-  zweite Spalte technisch nie gefüllt werden konnte. Bestehende Configs
-  mit `from: false` blenden die Spalte weiterhin aus.
+### Changed
+- The shipped files now live in the `dist/` folder. Nothing changes for a HACS
+  installation. For a manual installation the whole `dist` content must be
+  copied, and the resource URL is now
+  `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`.
+- `visible_fields.from` and `visible_fields.to` are merged into a single
+  `visible_fields.airport` column. A flight only ever names the other airport —
+  its own is never in the data — so the second column could never be filled.
+  Existing configs with `from: false` still hide the column.
 
-### Entfernt
-- Unterstützung für die Area-Sensoren (`current_in_area`, `entered_area`,
-  `exited_area`, `additional_tracked`). Diese Card ist eine reine
-  Ankunfts-/Abflugtafel und arbeitet nur noch mit
-  `sensor.flightradar24_airport_arrivals` / `_departures`. Die Sensoren der
-  Integration selbst sind davon nicht betroffen und bleiben anderweitig
-  nutzbar.
-- Konfigurationsoption `mode` (`auto`/`airport`/`area`) – ohne zweiten
-  Sensor-Typ gibt es nichts mehr zu unterscheiden.
-- Konfigurationsoptionen `visible_fields.altitude` und `visible_fields.speed`
-  – die Airport-Sensoren liefern diese Werte nicht, die Spalten blieben
-  immer leer.
+### Removed
+- Support for the area sensors (`current_in_area`, `entered_area`,
+  `exited_area`, `additional_tracked`). This card is purely an
+  arrivals/departures board and now works only with
+  `sensor.flightradar24_airport_arrivals` / `_departures`. The integration's
+  sensors themselves are unaffected and remain usable elsewhere.
+- Configuration option `mode` (`auto`/`airport`/`area`) — with no second sensor
+  type there is nothing left to distinguish.
+- Configuration options `visible_fields.altitude` and `visible_fields.speed` —
+  the airport sensors don't provide those values, so the columns always stayed
+  empty.
 
-### Geändert
-- Die Entity-Auswahl im visuellen Editor listet nur noch Sensoren mit
-  `flights`-Attribut, also keine Statistik-Sensoren wie
-  `..._delayed` oder `..._on_time` mehr.
+### Changed
+- The entity picker in the visual editor now lists only sensors with a
+  `flights` attribute, so no statistics sensors such as `..._delayed` or
+  `..._on_time`.
 
 ## [0.2.0] - 2026-02-06
 
-### Hinzugefügt
-- Unterstützung für neue Airport Arrivals/Departures Sensoren
-- Automatische Erkennung des Sensor-Typs (Airport vs. Area)
-- Neue `mode` Option für manuelle Sensor-Typ-Auswahl
-- Bessere Handhabung von `status_text` aus Airport Sensoren
-- Unterstützung für `airport_city` Feld
-- MIGRATION.md für Wechsel von Markdown Card
+### Added
+- Support for the new airport arrivals/departures sensors
+- Automatic detection of the sensor type (airport vs. area)
+- New `mode` option for selecting the sensor type manually
+- Better handling of `status_text` from airport sensors
+- Support for the `airport_city` field
+- MIGRATION.md for switching from the Markdown card
 
-### Geändert
-- Verbesserte Auto-Detection zwischen Airport- und Area-Sensoren
-- Optimierte Datenformatierung je nach Sensor-Typ
+### Changed
+- Improved auto-detection between airport and area sensors
+- Data formatting optimised per sensor type
 
 ## [0.1.0] - 2026-02-06
 
-### Hinzugefügt
-- Initiale Veröffentlichung
-- Split-Flap-Display-Animation mit authentischem Look
-- Unterstützung für FlightRadar24 Integration Area-Sensoren
-- Konfigurierbare Animationsgeschwindigkeit (`flip_duration`)
-- Konfigurierbare Verzögerung zwischen Buchstaben (`flip_delay`)
-- Konfigurierbare Anzahl anzuzeigender Flüge (`max_flights`)
-- Anpassbarer Titel (`title`)
-- Automatische Erkennung und Animation nur bei geänderten Daten
-- Intelligente Formatierung für:
-  - Ankunftszeiten
-  - Flugnummern
-  - Abflughäfen
-  - Flugstatus (GELANDET, ERWARTET, Verspätungen)
-  - Flugzeugtypen
-- Dunkles, realistisches Design mit:
-  - Farbverläufen auf den Flip-Klappen
-  - Schatten und 3D-Effekt
-  - Horizontale Trennlinie auf jeder Klappe
-  - Helligkeitseffekte während der Animation
-- HACS-Unterstützung
-- Deutsche Lokalisierung
-- Umfangreiche Dokumentation
+### Added
+- Initial release
+- Split-flap display animation with an authentic look
+- Support for the FlightRadar24 integration's area sensors
+- Configurable animation speed (`flip_duration`)
+- Configurable delay between characters (`flip_delay`)
+- Configurable number of flights shown (`max_flights`)
+- Customisable title (`title`)
+- Automatic detection and animation only where data changed
+- Formatting for:
+  - Arrival times
+  - Flight numbers
+  - Origin airports
+  - Flight status (LANDED, EXPECTED, delays)
+  - Aircraft types
+- Dark, realistic design with:
+  - Gradients on the flaps
+  - Shadows and a 3D effect
+  - A horizontal divider on each flap
+  - Brightness effects during the animation
+- HACS support
+- German localisation
+- Extensive documentation
 
-### Technische Details
-- Custom Element: `flightradar24-splitflap-card`
-- Shadow DOM für gekapselte Styles
-- CSS-Animationen für Performance
-- Ereignisbasierte Updates (keine Polling)
-- Optimierte Render-Performance durch selektive Updates
+### Technical details
+- Custom element: `flightradar24-splitflap-card`
+- Shadow DOM for encapsulated styles
+- CSS animations for performance
+- Event-based updates (no polling)
+- Render performance optimised through selective updates
 
 [Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0...HEAD
 [0.5.0]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0-beta.2...0.5.0
