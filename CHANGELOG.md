@@ -7,6 +7,27 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben
+- Der Konfigurationseditor stürzte mit „Cannot read properties of undefined
+  (reading 'visible_fields')" ab, wenn Home Assistant die Entity-Daten vor
+  der Konfiguration lieferte. Der Fehler bestand seit mindestens 0.3.
+- Die Kartengröße wurde über `getLayoutOptions()` gemeldet, das in Home
+  Assistant als veraltet markiert ist, und aus einer Pixel-Schätzung
+  berechnet. Stattdessen kommt jetzt `getGridOptions()` mit `rows: "auto"`
+  zum Einsatz – Home Assistant misst die tatsächliche Höhe der Karte,
+  statt sich auf eine Umrechnung zu verlassen.
+
+### Geändert
+- Der Konfigurationseditor nutzt jetzt Home Assistants eigene
+  Formular-Komponente statt eines handgebauten Formulars: native Optik,
+  echte Entity-Suche und weniger eigener Code. Die Filterung auf
+  Ankunfts-/Abflug-Sensoren bleibt erhalten.
+
+### Hinzugefügt
+- Die Card schlägt sich in Home Assistants Entity-Auswahl beim Hinzufügen
+  einer Karte selbst vor, wenn ein Ankunfts- oder Abflug-Sensor gewählt
+  wird (ab Home Assistant 2026.6).
+
 ## [0.4.1] - 2026-08-14
 
 Promoted from 0.4.1-beta.1 after maintainer testing, no code changes. See
