@@ -1,3 +1,20 @@
+// FlightRadar24's generic status vocabulary -> translation key.
+//
+// Each flight carries both `status_text` (an English sentence built for
+// display, e.g. "Estimated dep 07:40") and `status` (this machine-readable
+// value). Only the latter is stable and language-independent, so it drives
+// what the board shows; `status_text` is a last-resort fallback.
+const STATUS_KEYS = {
+  scheduled: 'scheduled',
+  estimated: 'expected',
+  departed: 'departed',
+  landed: 'landed',
+  delayed: 'delayed',
+  diverted: 'diverted',
+  canceled: 'canceled',
+  cancelled: 'canceled'
+};
+
 // Translations
 const translations = {
   en: {
@@ -10,6 +27,9 @@ const translations = {
     to: "TO",
     status: "STATUS",
     aircraft: "AIRCRAFT",
+    scheduled: "SCHEDULED",
+    canceled: "CANCELLED",
+    diverted: "DIVERTED",
     landed: "LANDED",
     expected: "EXPECTED",
     delayed: "DELAYED",
@@ -28,6 +48,9 @@ const translations = {
     to: "NACH",
     status: "STATUS",
     aircraft: "FLUGZEUG",
+    scheduled: "PLANMÄSSIG",
+    canceled: "ANNULLIERT",
+    diverted: "UMGELEITET",
     landed: "GELANDET",
     expected: "ERWARTET",
     delayed: "VERSPÄTET",
@@ -46,6 +69,9 @@ const translations = {
     to: "HASTA",
     status: "ESTADO",
     aircraft: "AVIÓN",
+    scheduled: "PROGRAMADO",
+    canceled: "CANCELADO",
+    diverted: "DESVIADO",
     landed: "ATERRIZADO",
     expected: "ESPERADO",
     delayed: "RETRASADO",
@@ -64,6 +90,9 @@ const translations = {
     to: "À",
     status: "STATUT",
     aircraft: "AVION",
+    scheduled: "PRÉVU",
+    canceled: "ANNULÉ",
+    diverted: "DÉROUTÉ",
     landed: "ATTERRI",
     expected: "ATTENDU",
     delayed: "RETARDÉ",
@@ -222,7 +251,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     if (vf.time !== false) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
     if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
     if (vf.airport !== false) fields.airport = (flight.airport_city || flight.airport_code_iata || '').substring(0, 15).padEnd(15, ' ');
-    if (vf.status !== false) fields.status = (flight.status_text || this.t('expected')).substring(0, 12).padEnd(12, ' ');
+    if (vf.status !== false) fields.status = this.formatStatus(flight).substring(0, 12).padEnd(12, ' ');
     if (vf.aircraft !== false) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
 
     return fields;
@@ -230,6 +259,41 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
   formatTime(date) {
     return date.toLocaleTimeString(this.config.language || 'en', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /**
+   * The upstream `status_text` is an English sentence whose shape varies by
+   * state and direction ("Estimated 07:37" vs "Estimated dep 07:40"), so it
+   * can be neither translated nor safely shortened — cutting it to the
+   * column width used to strip exactly the part that carried the meaning,
+   * leaving "Estimated de".
+   *
+   * The `status` enum next to it is stable and language-independent, so it
+   * is what the board shows. `status_text` is only used for states not in
+   * the mapping, and then cut at a word boundary rather than mid-word.
+   *
+   * @param {Record<string, any>} flight
+   * @returns {string}
+   */
+  formatStatus(flight) {
+    const key = STATUS_KEYS[String(flight.status || '').toLowerCase()];
+    if (key) return this.t(key);
+
+    if (flight.status_text) return this.truncateAtWord(flight.status_text, 12);
+    return this.t('expected');
+  }
+
+  /**
+   * @param {string} text
+   * @param {number} max
+   * @returns {string}
+   */
+  truncateAtWord(text, max) {
+    if (text.length <= max) return text;
+
+    const cut = text.substring(0, max);
+    const lastSpace = cut.lastIndexOf(' ');
+    return lastSpace > 0 ? cut.substring(0, lastSpace) : cut;
   }
 
   animateRow(rowIndex, oldData, newData) {
