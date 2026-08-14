@@ -480,7 +480,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
   renderFlightBoard() {
     const grid = this.shadowRoot.querySelector('.grid');
-    const empty = this.shadowRoot.querySelector('.empty');
+    const empty = /** @type {HTMLElement | null} */ (this.shadowRoot.querySelector('.empty'));
     if (!grid) return;
 
     // Header cells live in the same grid as the data, so the two can never
