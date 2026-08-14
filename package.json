@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

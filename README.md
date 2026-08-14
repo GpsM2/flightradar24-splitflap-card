@@ -36,9 +36,12 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
 ### Manuell
 
 1. Neueste Version von [Releases](https://github.com/GpsM2/flightradar24-splitflap-card/releases) herunterladen
-2. `flightradar24-splitflap-card.js` nach `/config/www/` kopieren
+2. Den **gesamten Inhalt** des `dist`-Ordners nach `/config/www/flightradar24-splitflap-card/`
+   kopieren – also `flightradar24-splitflap-card.js` **und** den Ordner
+   `translations/`. Ohne die Übersetzungsdateien läuft die Card weiterhin,
+   zeigt dann aber alle Texte auf Englisch.
 3. Ressource in Home Assistant hinzufügen: **Einstellungen** → **Dashboards** → **Ressourcen** (drei Punkte oben rechts) → **Ressource hinzufügen**
-   - URL: `/local/flightradar24-splitflap-card.js`
+   - URL: `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`
    - Ressourcentyp: **JavaScript-Modul**
 4. Browser-Cache leeren (Strg+F5)
 
@@ -59,7 +62,7 @@ entity: sensor.flightradar24_airport_arrivals
 type: custom:flightradar24-splitflap-card
 entity: sensor.flightradar24_airport_arrivals  # erforderlich
 title: ANKÜNFTE FRANKFURT   # Überschrift, Standard: automatisch anhand der Entity
-language: de                # en, de, es, fr – Standard: en
+language: de                # en, de, es, fr – ohne Angabe: Sprache von Home Assistant
 max_flights: 8               # Anzahl angezeigter Flüge, Standard: 8
 board: auto                  # auto, arrivals, departures – Standard: auto
 flip_duration: 800           # Dauer der Flip-Animation in ms, Standard: 800
@@ -149,6 +152,18 @@ card:
 - `max_flights` reduzieren oder das Scan-Interval der FlightRadar24-Integration auf mindestens 60 Sekunden erhöhen
 
 Weitere Details in [INSTALLATION.md](INSTALLATION.md).
+
+## Sprachen
+
+Mitgeliefert sind Englisch, Deutsch, Spanisch und Französisch. Ohne gesetzte
+Option `language` folgt die Card der Sprache von Home Assistant; für nicht
+unterstützte Sprachen fällt sie auf Englisch zurück.
+
+Alle Texte – auch die des Konfigurationseditors – liegen in
+`dist/translations/<sprache>.json` und werden zur Laufzeit geladen. Eine neue
+Sprache erfordert daher keine Änderung am JavaScript: Datei kopieren,
+übersetzen, in `SUPPORTED_LANGUAGES` eintragen. Spanisch und Französisch sind
+bislang nicht muttersprachlich geprüft – Korrekturen sind willkommen.
 
 ## Beitragen
 

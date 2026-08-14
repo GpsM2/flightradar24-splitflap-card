@@ -34,7 +34,7 @@ entity: sensor.flightradar24_airport_departures
 |--------|----------|--------------|
 | `entity` | **erforderlich** | FlightRadar24 Airport-Sensor (Arrivals oder Departures) |
 | `title` | automatisch | Überschrift |
-| `language` | `en` | `en`, `de`, `es`, `fr` |
+| `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
 | `max_flights` | `8` | Anzahl Flüge |
 | `board` | `auto` | `auto`, `arrivals`, `departures` – Richtung der Tafel |
 | `flip_duration` | `800` | Animation Dauer (ms) |
