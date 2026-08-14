@@ -1065,12 +1065,27 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 }
 
+/**
+ * Home Assistant's `<ha-form>` frontend component. Untyped by HA itself, so
+ * this covers only the surface this editor actually touches.
+ *
+ * @typedef {HTMLElement & {
+ *   hass: unknown,
+ *   data: Record<string, unknown>,
+ *   schema: Array<Record<string, unknown>>,
+ *   computeLabel?: (schema: Record<string, any>) => string,
+ *   computeHelper?: (schema: Record<string, any>) => string,
+ * }} HaFormElement
+ */
+
 class FlightRadar24SplitFlapCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     /** @type {Record<string, string>} */
     this._strings = FALLBACK_TRANSLATIONS;
+    /** @type {HaFormElement | undefined} */
+    this._form = undefined;
   }
 
   /**
@@ -1318,23 +1333,28 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       style.textContent = '.card-config { padding: 8px 0; }';
       this.shadowRoot.appendChild(style);
 
-      this._form = document.createElement('ha-form');
-      this._form.computeLabel = schema =>
+      // ha-form is a Home Assistant frontend component with no published
+      // types, so TypeScript only sees a plain HTMLElement here — cast once
+      // at creation rather than scattering `any` at every property below.
+      const form = /** @type {HaFormElement} */ (document.createElement('ha-form'));
+      this._form = form;
+      form.computeLabel = schema =>
         this.t(FlightRadar24SplitFlapCardEditor.LABEL_KEYS[schema.name] || schema.name);
-      this._form.computeHelper = schema => {
+      form.computeHelper = schema => {
         const key = FlightRadar24SplitFlapCardEditor.HELPER_KEYS[schema.name];
         return key ? this.t(key) : '';
       };
-      this._form.addEventListener('value-changed', event => {
+      form.addEventListener('value-changed', event => {
         // ha-form hands back the whole merged object, including nested
         // visible_fields — no per-field wiring left to keep in sync.
+        const detail = /** @type {CustomEvent} */ (event).detail;
         this.dispatchEvent(new CustomEvent('config-changed', {
-          detail: { config: { ...this._config, ...event.detail.value } },
+          detail: { config: { ...this._config, ...detail.value } },
           bubbles: true,
           composed: true
         }));
       });
-      this.shadowRoot.querySelector('.card-config').appendChild(this._form);
+      this.shadowRoot.querySelector('.card-config').appendChild(form);
     }
 
     const signature = this.schemaSignature();
