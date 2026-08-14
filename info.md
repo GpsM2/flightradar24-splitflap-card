@@ -22,22 +22,23 @@ type: custom:flightradar24-splitflap-card
 entity: sensor.flightradar24_airport_arrivals
 ```
 
-**Für Flüge in der Nähe:**
+**Für Flughafen Abflüge:**
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
+entity: sensor.flightradar24_airport_departures
 ```
 
 ## Konfiguration
 
 | Option | Standard | Beschreibung |
 |--------|----------|--------------|
-| `entity` | **erforderlich** | FlightRadar24 Sensor (Airport oder Area) |
-| `title` | `ANKÜNFTE` | Überschrift |
+| `entity` | **erforderlich** | FlightRadar24 Airport-Sensor (Arrivals oder Departures) |
+| `title` | automatisch | Überschrift |
+| `language` | `en` | `en`, `de`, `es`, `fr` |
 | `max_flights` | `8` | Anzahl Flüge |
 | `flip_duration` | `800` | Animation Dauer (ms) |
 | `flip_delay` | `50` | Verzögerung zwischen Buchstaben (ms) |
-| `mode` | `auto` | `auto`, `airport`, oder `area` |
+| `visible_fields` | alle außer `to` | Welche Spalten angezeigt werden |
 
 ## Beispiel
 

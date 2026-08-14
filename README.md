@@ -13,7 +13,7 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
 ## Features
 
 - Authentische Split-Flap-Animation – jedes Zeichen dreht sich einzeln, nur geänderte Zeichen werden animiert
-- Unterstützt Airport-Sensoren (Arrivals/Departures) sowie die Area-Sensoren der Integration, mit automatischer Erkennung des Sensor-Typs
+- Für die Airport-Sensoren der Integration: Ankünfte und Abflüge eines Flughafens
 - Konfigurierbare Animationsgeschwindigkeit, Zeilenanzahl und sichtbare Spalten
 - Mehrsprachige Oberfläche (Deutsch, Englisch, Spanisch, Französisch)
 - Visueller Konfigurationseditor – keine YAML-Kenntnisse nötig
@@ -61,7 +61,6 @@ entity: sensor.flightradar24_airport_arrivals  # erforderlich
 title: ANKÜNFTE FRANKFURT   # Überschrift, Standard: automatisch anhand der Entity
 language: de                # en, de, es, fr – Standard: en
 max_flights: 8               # Anzahl angezeigter Flüge, Standard: 8
-mode: auto                   # auto, airport, oder area – Standard: auto
 flip_duration: 800           # Dauer der Flip-Animation in ms, Standard: 800
 flip_delay: 50                # Verzögerung zwischen Buchstaben in ms, Standard: 50
 visible_fields:               # welche Spalten angezeigt werden
@@ -71,25 +70,18 @@ visible_fields:               # welche Spalten angezeigt werden
   to: false
   status: true
   aircraft: true
-  altitude: false
-  speed: false
 ```
 
 ## Unterstützte Entities
 
-Die Card erkennt den Sensor-Typ automatisch (`mode: auto`):
+Diese Card ist eine Ankunfts-/Abflugtafel und arbeitet mit den Airport-Sensoren der Integration:
 
-**Airport-Sensoren** (empfohlen)
 - `sensor.flightradar24_airport_arrivals` – Ankünfte eines Flughafens
 - `sensor.flightradar24_airport_departures` – Abflüge eines Flughafens
 
-**Area-Sensoren**
-- `sensor.flightradar24_current_in_area` – aktuell in der konfigurierten Region
-- `sensor.flightradar24_entered_area` – kürzlich eingetreten
-- `sensor.flightradar24_exited_area` – kürzlich ausgetreten
-- `sensor.flightradar24_additional_tracked` – zusätzlich verfolgte Flüge
+Angezeigt werden können: Zeit, Flugnummer, Herkunft/Ziel, Status und Flugzeugtyp.
 
-Angezeigt werden können: Zeit, Flugnummer, Herkunft/Ziel, Status, Flugzeugtyp sowie (bei Area-Sensoren) Höhe und Geschwindigkeit.
+Die Area-Sensoren der Integration (`current_in_area`, `entered_area`, `exited_area`, `additional_tracked`) werden von dieser Card bewusst nicht unterstützt – sie liefern Live-Positionsdaten statt Fahrplandaten und passen nicht zum Format einer Anzeigetafel. Die Sensoren selbst bleiben davon unberührt und können weiterhin in anderen Karten und Automationen genutzt werden.
 
 ## Beispiele
 
@@ -114,12 +106,12 @@ cards:
 type: conditional
 conditions:
   - condition: numeric_state
-    entity: sensor.flightradar24_current_in_area
+    entity: sensor.flightradar24_airport_arrivals
     above: 0
 card:
   type: custom:flightradar24-splitflap-card
-  entity: sensor.flightradar24_current_in_area
-  title: FLÜGE IN DER NÄHE
+  entity: sensor.flightradar24_airport_arrivals
+  title: ANKÜNFTE
 ```
 
 ## Problembehandlung
