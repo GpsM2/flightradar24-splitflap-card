@@ -33,6 +33,13 @@ store — clean i18n, tested behavior, a disciplined release process.
   the maintainer does not supply them.
 - Chat with the maintainer: German. Everything that lands in the repo
   (code, comments, commit messages, PR/issue text, docs): English.
+- GitHub Issues Claude creates or substantively comments on end with a
+  trailing, unobtrusive line: `Assisted by: Claude:<model-id>` (e.g.
+  `Assisted by: Claude:claude-sonnet-5`) — no heading, no emphasis, just
+  the plain line. Use whichever model is actually active at the time, not
+  a fixed value. PRs and commits already self-identify (the `🤖 Generated
+  with Claude Code` footer, the `Co-Authored-By` trailer) and don't need
+  this line too.
 
 ## Repository governance
 
