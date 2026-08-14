@@ -611,6 +611,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       columns.forEach(column => {
         fragment.appendChild(this.createCell(flight, column, rowIndex));
       });
+      fragment.appendChild(this.createFillerCell(rowIndex));
     });
 
     grid.appendChild(fragment);
@@ -649,6 +650,14 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     });
 
     this.applyTone(cell, column, source);
+    return cell;
+  }
+
+  createFillerCell(rowIndex) {
+    const cell = document.createElement('div');
+    cell.className = 'cell filler';
+    cell.dataset.row = String(rowIndex);
+    if (rowIndex % 2 === 1) cell.classList.add('odd');
     return cell;
   }
 
@@ -810,7 +819,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
         .grid {
           display: grid;
-          grid-template-columns: repeat(${columns.length}, max-content);
+          grid-template-columns: repeat(${columns.length}, max-content) minmax(0, 1fr);
           min-width: max-content;
           align-items: center;
         }
@@ -829,6 +838,8 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           white-space: nowrap;
         }
 
+        .colhead.filler { padding: 0; }
+
         .cell {
           display: flex;
           gap: 2px;
@@ -838,6 +849,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
         }
 
         .cell.odd { background: var(--fr24-row-alt-bg); }
+        .cell.filler { min-width: 0; }
 
         .flap-char {
           width: var(--fr24-tile-w);
@@ -930,6 +942,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           <div class="grid">
             ${columns.map(column =>
               `<div class="colhead">${this.escape(this.t(column.label))}</div>`).join('')}
+            <div class="colhead filler" aria-hidden="true"></div>
           </div>
         </div>
         <div class="empty" hidden>${this.escape(this.t('noFlights'))}</div>
