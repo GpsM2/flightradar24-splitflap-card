@@ -5,7 +5,7 @@
  *
  * Kept in sync with the release tag; see CLAUDE.md.
  */
-const CARD_VERSION = '0.4.1-beta.1';
+const CARD_VERSION = '0.4.1';
 
 console.info(
   `%c FLIGHTRADAR24-SPLITFLAP-CARD %c ${CARD_VERSION} `,
