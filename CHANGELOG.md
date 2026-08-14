@@ -7,6 +7,28 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben
+- Spalten liefen auf schmalen Karten aus dem Raster und die Beschriftungen
+  passten nicht mehr zu den Daten. Kopfzeile und Zeilen teilten sich zwei
+  getrennte Scroll-Container; beim Scrollen stand eine Spalte bis zu 150 px
+  neben ihrer Überschrift. Beides liegt jetzt in einem gemeinsamen Raster.
+- Die Meldung „Keine Flüge verfügbar" erschien nie – bei leerer Flugliste,
+  nicht verfügbarer oder fehlender Entity blieb die Tafel einfach leer.
+- Laufende Flip-Animationen wurden beim Entfernen der Karte nicht gestoppt.
+
+### Hinzugefügt
+- Heller und dunkler Modus. Ohne Angabe folgt die Card dem Theme von Home
+  Assistant; mit `theme: dark` bzw. `theme: light` lässt sich das
+  übersteuern.
+- Die Tafel ist jetzt responsiv: die Kachelgröße richtet sich danach, wie
+  viele Zeichen tatsächlich Platz finden müssen. Erst unterhalb einer
+  Mindestgröße wird horizontal gescrollt.
+
+### Geändert
+- Neues Tafel-Design: durchgehendes Kachelraster, in dem auch ungenutzte
+  Positionen als leere Klappen sichtbar bleiben, mit Akzentleisten an
+  Ober- und Unterkante.
+
 ## [0.3.0] - 2026-08-14
 
 Promoted from 0.3.0-beta.1 after maintainer testing, no code changes. See

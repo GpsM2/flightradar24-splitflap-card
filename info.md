@@ -37,6 +37,7 @@ entity: sensor.flightradar24_airport_departures
 | `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
 | `max_flights` | `8` | Anzahl Flüge |
 | `board` | `auto` | `auto`, `arrivals`, `departures` – Richtung der Tafel |
+| `theme` | `auto` | `auto`, `dark`, `light` – Darstellung |
 | `flip_duration` | `800` | Animation Dauer (ms) |
 | `flip_delay` | `50` | Verzögerung zwischen Buchstaben (ms) |
 | `visible_fields` | alle | Welche Spalten angezeigt werden |
