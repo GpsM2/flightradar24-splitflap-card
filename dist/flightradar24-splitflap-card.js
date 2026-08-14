@@ -840,9 +840,11 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
         .cell.odd { background: var(--fr24-row-alt-bg); }
 
         .flap-char {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: var(--fr24-tile-w);
           height: var(--fr24-tile-h);
-          line-height: var(--fr24-tile-h);
           flex: 0 0 auto;
           text-align: center;
           font-size: var(--fr24-tile-font);
