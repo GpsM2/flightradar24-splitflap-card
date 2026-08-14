@@ -117,6 +117,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.flights = [];
     this.displayedFlights = [];
+    /** @type {Record<string, string>} */
     this._strings = FALLBACK_TRANSLATIONS;
   }
 
@@ -681,6 +682,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    /** @type {Record<string, string>} */
     this._strings = FALLBACK_TRANSLATIONS;
   }
 
