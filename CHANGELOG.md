@@ -17,6 +17,12 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   zum Einsatz – Home Assistant misst die tatsächliche Höhe der Karte,
   statt sich auf eine Umrechnung zu verlassen.
 
+### Geändert
+- Der Konfigurationseditor nutzt jetzt Home Assistants eigene
+  Formular-Komponente statt eines handgebauten Formulars: native Optik,
+  echte Entity-Suche und weniger eigener Code. Die Filterung auf
+  Ankunfts-/Abflug-Sensoren bleibt erhalten.
+
 ### Hinzugefügt
 - Die Card schlägt sich in Home Assistants Entity-Auswahl beim Hinzufügen
   einer Karte selbst vor, wenn ein Ankunfts- oder Abflug-Sensor gewählt

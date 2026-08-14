@@ -68,7 +68,6 @@ export const FALLBACK_TRANSLATIONS = {
     "editor.boardHelper": "Detected from the sensor. Override only if the airport column is labelled wrong.",
     "editor.entity": "Entity",
     "editor.entityHelper": "Select a FlightRadar24 arrivals or departures sensor",
-    "editor.entityPlaceholder": "Select a sensor…",
     "editor.fieldAircraft": "Aircraft",
     "editor.fieldAirport": "Airport (from/to)",
     "editor.fieldExpected": "Expected time",
@@ -92,7 +91,6 @@ export const FALLBACK_TRANSLATIONS = {
     "editor.themeLight": "Light",
     "editor.title": "Title",
     "editor.titleHelper": "Leave empty to use the board direction",
-    "editor.titlePlaceholder": "Automatic",
     "editor.visibleFields": "Visible columns",
     "editor.visibleFieldsHelper": "Choose which columns the board shows",
     "expected": "EXPECTED",
@@ -1103,6 +1101,10 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       if (this._loadedLanguage !== lang) return;
 
       this._strings = strings;
+      // The language whose strings are actually in use, as opposed to the
+      // one requested above — the schema signature keys off this, see
+      // schemaSignature().
+      this._activeLanguage = lang;
       this.render();
     });
   }
@@ -1134,9 +1136,10 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this.applyLanguage();
-    if (!this._rendered) {
-      this.render();
-    }
+    // Always: render() builds the form once and only refreshes its
+    // properties afterwards, and `ha-form` needs a current `hass` for the
+    // entity picker to work at all.
+    this.render();
   }
 
   /**
@@ -1173,235 +1176,177 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       }));
   }
 
+  /**
+   * Field name -> translation key. Kept explicit rather than derived from
+   * the name, so a schema rename can't silently fall back to showing the
+   * raw key to the user.
+   */
+  static LABEL_KEYS = {
+    entity: 'editor.entity',
+    title: 'editor.title',
+    language: 'editor.language',
+    board: 'editor.board',
+    theme: 'editor.theme',
+    max_flights: 'editor.maxFlights',
+    flip_duration: 'editor.flipDuration',
+    flip_delay: 'editor.flipDelay',
+    visible_fields: 'editor.visibleFields',
+    time: 'editor.fieldTime',
+    expected: 'editor.fieldExpected',
+    flight: 'editor.fieldFlight',
+    airport: 'editor.fieldAirport',
+    status: 'editor.fieldStatus',
+    aircraft: 'editor.fieldAircraft'
+  };
+
+  static HELPER_KEYS = {
+    entity: 'editor.entityHelper',
+    title: 'editor.titleHelper',
+    language: 'editor.languageHelper',
+    board: 'editor.boardHelper',
+    theme: 'editor.themeHelper',
+    max_flights: 'editor.maxFlightsHelper',
+    flip_duration: 'editor.flipDurationHelper',
+    flip_delay: 'editor.flipDelayHelper',
+    visible_fields: 'editor.visibleFieldsHelper'
+  };
+
+  /**
+   * Built per render rather than declared statically, because the entity
+   * list has to be filtered against `hass` — that filtering is the reason
+   * this card keeps `getConfigElement()` instead of moving to the static
+   * `getConfigForm()`, which gets no `hass` at all (see #13).
+   *
+   * @returns {Array<Record<string, any>>}
+   */
+  buildSchema() {
+    const select = (options) => ({
+      selector: { select: { mode: 'dropdown', options } }
+    });
+
+    return [
+      {
+        name: 'entity',
+        required: true,
+        selector: {
+          entity: {
+            // Only real arrivals/departures boards, never the area sensors
+            // or the statistics sub-sensors.
+            include_entities: this.getFlightRadar24Entities().map(entity => entity.value)
+          }
+        }
+      },
+      { name: 'title', selector: { text: {} } },
+      {
+        name: 'language',
+        ...select([
+          { value: '', label: this.t('editor.languageAuto') },
+          // Language names stay in their own language, as language pickers do.
+          { value: 'en', label: 'English' },
+          { value: 'de', label: 'Deutsch' },
+          { value: 'es', label: 'Español' },
+          { value: 'fr', label: 'Français' }
+        ])
+      },
+      {
+        name: 'board',
+        ...select([
+          { value: 'auto', label: this.t('editor.boardAuto') },
+          { value: 'arrivals', label: this.t('editor.boardArrivals') },
+          { value: 'departures', label: this.t('editor.boardDepartures') }
+        ])
+      },
+      {
+        name: 'theme',
+        ...select([
+          { value: 'auto', label: this.t('editor.themeAuto') },
+          { value: 'dark', label: this.t('editor.themeDark') },
+          { value: 'light', label: this.t('editor.themeLight') }
+        ])
+      },
+      { name: 'max_flights', selector: { number: { min: 1, max: 20, mode: 'box' } } },
+      { name: 'flip_duration', selector: { number: { min: 200, max: 2000, step: 100, mode: 'box' } } },
+      { name: 'flip_delay', selector: { number: { min: 10, max: 200, step: 10, mode: 'box' } } },
+      {
+        name: 'visible_fields',
+        type: 'expandable',
+        schema: [
+          { name: 'time', selector: { boolean: {} } },
+          { name: 'expected', selector: { boolean: {} } },
+          { name: 'flight', selector: { boolean: {} } },
+          { name: 'airport', selector: { boolean: {} } },
+          { name: 'status', selector: { boolean: {} } },
+          { name: 'aircraft', selector: { boolean: {} } }
+        ]
+      }
+    ];
+  }
+
+  /**
+   * Schema identity drives whether `ha-form` rebuilds its fields, so it is
+   * only recomputed when something it actually depends on changed —
+   * otherwise every hass update would tear down the form mid-edit.
+   *
+   * Keyed on the language whose strings are *loaded*, not the one
+   * requested: `computeLabel` is called lazily by `ha-form` and picks up
+   * new translations on its own, but dropdown option labels are baked into
+   * the schema when it is built. Keying off the requested language left
+   * those options in English while every field label was translated.
+   *
+   * @returns {string}
+   */
+  schemaSignature() {
+    return [
+      this._activeLanguage,
+      this.getFlightRadar24Entities().map(entity => entity.value).join(',')
+    ].join('|');
+  }
+
   render() {
     // Home Assistant gives no ordering guarantee between setConfig() and the
     // hass setter. If hass lands first, `_config` doesn't exist yet and
-    // reading `visible_fields` off it threw a config error into the editor.
+    // reading it threw a config error into the editor.
     if (!this._hass || !this._config) {
       this.shadowRoot.innerHTML =
         `<div style="padding: 16px;">${this.t('editor.loading')}</div>`;
       return;
     }
 
-    this._rendered = true;
-    const entities = this.getFlightRadar24Entities();
-    const config = this._config;
-    const vf = config.visible_fields || {};
+    if (!this._form) {
+      this.shadowRoot.innerHTML = '<div class="card-config"></div>';
+      const style = document.createElement('style');
+      style.textContent = '.card-config { padding: 8px 0; }';
+      this.shadowRoot.appendChild(style);
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        .card-config {
-          padding: 16px;
-        }
-        .config-row {
-          margin-bottom: 16px;
-        }
-        label {
-          display: block;
-          margin-bottom: 4px;
-          font-weight: 500;
-          font-size: 14px;
-        }
-        .helper {
-          font-size: 12px;
-          color: var(--secondary-text-color);
-          margin-top: 4px;
-        }
-        select, input[type="text"], input[type="number"] {
-          width: 100%;
-          padding: 8px;
-          border: 1px solid var(--divider-color);
-          border-radius: 4px;
-          background: var(--card-background-color);
-          color: var(--primary-text-color);
-          font-size: 14px;
-          box-sizing: border-box;
-        }
-        .checkbox-group {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 8px;
-          margin-top: 8px;
-        }
-        .checkbox-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .checkbox-item input[type="checkbox"] {
-          width: auto;
-          margin: 0;
-        }
-        .checkbox-item label {
-          margin: 0;
-          font-weight: normal;
-        }
-      </style>
-      
-      <div class="card-config">
-        <div class="config-row">
-          <label for="entity">${this.t('editor.entity')} *</label>
-          <select id="entity">
-            <option value="">${this.t('editor.entityPlaceholder')}</option>
-            ${entities.map(e => `
-              <option value="${e.value}" ${config.entity === e.value ? 'selected' : ''}>
-                ${e.label}
-              </option>
-            `).join('')}
-          </select>
-          <div class="helper">${this.t('editor.entityHelper')}</div>
-        </div>
+      this._form = document.createElement('ha-form');
+      this._form.computeLabel = schema =>
+        this.t(FlightRadar24SplitFlapCardEditor.LABEL_KEYS[schema.name] || schema.name);
+      this._form.computeHelper = schema => {
+        const key = FlightRadar24SplitFlapCardEditor.HELPER_KEYS[schema.name];
+        return key ? this.t(key) : '';
+      };
+      this._form.addEventListener('value-changed', event => {
+        // ha-form hands back the whole merged object, including nested
+        // visible_fields — no per-field wiring left to keep in sync.
+        this.dispatchEvent(new CustomEvent('config-changed', {
+          detail: { config: { ...this._config, ...event.detail.value } },
+          bubbles: true,
+          composed: true
+        }));
+      });
+      this.shadowRoot.querySelector('.card-config').appendChild(this._form);
+    }
 
-        <div class="config-row">
-          <label for="title">${this.t('editor.title')}</label>
-          <input type="text" id="title" value="${config.title || ''}" placeholder="${this.t('editor.titlePlaceholder')}">
-          <div class="helper">${this.t('editor.titleHelper')}</div>
-        </div>
+    const signature = this.schemaSignature();
+    if (signature !== this._schemaSignature) {
+      this._schemaSignature = signature;
+      this._form.schema = this.buildSchema();
+    }
 
-        <div class="config-row">
-          <label for="language">${this.t('editor.language')}</label>
-          <select id="language">
-            <option value="" ${!config.language ? 'selected' : ''}>${this.t('editor.languageAuto')}</option>
-            <option value="en" ${config.language === 'en' ? 'selected' : ''}>English</option>
-            <option value="de" ${config.language === 'de' ? 'selected' : ''}>Deutsch</option>
-            <option value="es" ${config.language === 'es' ? 'selected' : ''}>Español</option>
-            <option value="fr" ${config.language === 'fr' ? 'selected' : ''}>Français</option>
-          </select>
-          <div class="helper">${this.t('editor.languageHelper')}</div>
-        </div>
-
-        <div class="config-row">
-          <label for="max_flights">${this.t('editor.maxFlights')}</label>
-          <input type="number" id="max_flights" value="${config.max_flights || 8}" min="1" max="20">
-          <div class="helper">${this.t('editor.maxFlightsHelper')}</div>
-        </div>
-
-        <div class="config-row">
-          <label for="flip_duration">${this.t('editor.flipDuration')}</label>
-          <input type="number" id="flip_duration" value="${config.flip_duration || 800}" min="200" max="2000" step="100">
-          <div class="helper">${this.t('editor.flipDurationHelper')}</div>
-        </div>
-
-        <div class="config-row">
-          <label for="flip_delay">${this.t('editor.flipDelay')}</label>
-          <input type="number" id="flip_delay" value="${config.flip_delay || 50}" min="10" max="200" step="10">
-          <div class="helper">${this.t('editor.flipDelayHelper')}</div>
-        </div>
-
-        <div class="config-row">
-          <label for="board">${this.t('editor.board')}</label>
-          <select id="board">
-            <option value="auto" ${config.board !== 'arrivals' && config.board !== 'departures' ? 'selected' : ''}>${this.t('editor.boardAuto')}</option>
-            <option value="arrivals" ${config.board === 'arrivals' ? 'selected' : ''}>${this.t('editor.boardArrivals')}</option>
-            <option value="departures" ${config.board === 'departures' ? 'selected' : ''}>${this.t('editor.boardDepartures')}</option>
-          </select>
-          <div class="helper">${this.t('editor.boardHelper')}</div>
-        </div>
-
-        <div class="config-row">
-          <label for="theme">${this.t('editor.theme')}</label>
-          <select id="theme">
-            <option value="auto" ${config.theme !== 'dark' && config.theme !== 'light' ? 'selected' : ''}>${this.t('editor.themeAuto')}</option>
-            <option value="dark" ${config.theme === 'dark' ? 'selected' : ''}>${this.t('editor.themeDark')}</option>
-            <option value="light" ${config.theme === 'light' ? 'selected' : ''}>${this.t('editor.themeLight')}</option>
-          </select>
-          <div class="helper">${this.t('editor.themeHelper')}</div>
-        </div>
-
-        <div class="config-row">
-          <label>${this.t('editor.visibleFields')}</label>
-          <div class="checkbox-group">
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_time" ${vf.time !== false ? 'checked' : ''}>
-              <label for="show_time">${this.t('editor.fieldTime')}</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_expected" ${vf.expected !== false ? 'checked' : ''}>
-              <label for="show_expected">${this.t('editor.fieldExpected')}</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_flight" ${vf.flight !== false ? 'checked' : ''}>
-              <label for="show_flight">${this.t('editor.fieldFlight')}</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_airport" ${vf.airport !== false ? 'checked' : ''}>
-              <label for="show_airport">${this.t('editor.fieldAirport')}</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_status" ${vf.status !== false ? 'checked' : ''}>
-              <label for="show_status">${this.t('editor.fieldStatus')}</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="show_aircraft" ${vf.aircraft !== false ? 'checked' : ''}>
-              <label for="show_aircraft">${this.t('editor.fieldAircraft')}</label>
-            </div>
-          </div>
-          <div class="helper">${this.t('editor.visibleFieldsHelper')}</div>
-        </div>
-      </div>
-    `;
-
-    // Add event listeners
-    this.shadowRoot.getElementById('entity')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('title')?.addEventListener('input', () => this.valueChanged());
-    this.shadowRoot.getElementById('language')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('max_flights')?.addEventListener('input', () => this.valueChanged());
-    this.shadowRoot.getElementById('flip_duration')?.addEventListener('input', () => this.valueChanged());
-    this.shadowRoot.getElementById('flip_delay')?.addEventListener('input', () => this.valueChanged());
-    this.shadowRoot.getElementById('board')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('theme')?.addEventListener('change', () => this.valueChanged());
-
-    this.shadowRoot.getElementById('show_time')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_expected')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_flight')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_airport')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_status')?.addEventListener('change', () => this.valueChanged());
-    this.shadowRoot.getElementById('show_aircraft')?.addEventListener('change', () => this.valueChanged());
+    this._form.hass = this._hass;
+    this._form.data = this._config;
   }
 
-  /**
-   * @param {string} id
-   * @returns {HTMLInputElement | null}
-   */
-  getInput(id) {
-    return /** @type {HTMLInputElement | null} */ (this.shadowRoot.getElementById(id));
-  }
-
-  /**
-   * @param {string} id
-   * @returns {HTMLSelectElement | null}
-   */
-  getSelect(id) {
-    return /** @type {HTMLSelectElement | null} */ (this.shadowRoot.getElementById(id));
-  }
-
-  valueChanged() {
-    const newConfig = {
-      entity: this.getSelect('entity')?.value || '',
-      title: this.getInput('title')?.value || '',
-      language: this.getSelect('language')?.value || '',
-      max_flights: parseInt(this.getInput('max_flights')?.value) || 8,
-      flip_duration: parseInt(this.getInput('flip_duration')?.value) || 800,
-      flip_delay: parseInt(this.getInput('flip_delay')?.value) || 50,
-      board: this.getSelect('board')?.value || 'auto',
-      theme: this.getSelect('theme')?.value || 'auto',
-      visible_fields: {
-        time: this.getInput('show_time')?.checked !== false,
-        expected: this.getInput('show_expected')?.checked !== false,
-        flight: this.getInput('show_flight')?.checked !== false,
-        airport: this.getInput('show_airport')?.checked !== false,
-        status: this.getInput('show_status')?.checked !== false,
-        aircraft: this.getInput('show_aircraft')?.checked !== false
-      }
-    };
-    
-    const event = new CustomEvent('config-changed', {
-      detail: { config: newConfig },
-      bubbles: true,
-      composed: true
-    });
-    this.dispatchEvent(event);
-  }
 }
 
 customElements.define('flightradar24-splitflap-card', FlightRadar24SplitFlapCard);
