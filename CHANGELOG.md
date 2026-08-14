@@ -7,6 +7,11 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-15
+
+Promoted from 0.5.0-beta.2 after maintainer testing, no code changes. See
+the beta entries below for what's actually in this release.
+
 ## [0.5.0-beta.2] - 2026-08-15
 
 ### Behoben
@@ -218,7 +223,8 @@ that entry below for what's actually in this release.
 - Ereignisbasierte Updates (keine Polling)
 - Optimierte Render-Performance durch selektive Updates
 
-[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0-beta.2...HEAD
+[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0-beta.2...0.5.0
 [0.5.0-beta.2]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0-beta.1...0.5.0-beta.2
 [0.5.0-beta.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.4.1...0.5.0-beta.1
 [0.4.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.4.1-beta.1...0.4.1
