@@ -48,130 +48,54 @@ Falls noch nicht installiert:
 
 ## Schritt 3: Card zum Dashboard hinzufügen
 
-### Über die UI
+Die Karte wird über die Oberfläche eingerichtet – YAML ist nicht nötig.
 
-1. Dashboard bearbeiten
-2. "Karte hinzufügen"
-3. Runterscrollen zu "Manuell" oder "Custom: FlightRadar24 Split-Flap Card"
-4. Folgende Konfiguration einfügen:
+1. Dashboard bearbeiten → **Karte hinzufügen**
+2. Nach „FlightRadar24 Split-Flap Card" suchen und auswählen
+3. Im Editor den gewünschten Sensor wählen. Zur Auswahl stehen nur die
+   Ankunfts- und Abflugtafeln – die Area- und Statistik-Sensoren der
+   Integration werden ausgeblendet, weil sie keine Fahrplandaten liefern.
+4. Optionen anpassen und speichern
 
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-```
+Ab Home Assistant 2026.6 geht es noch direkter: beim Hinzufügen einer Karte
+zuerst den Sensor auswählen – diese Karte wird dann automatisch vorgeschlagen.
 
-5. Speichern
+## Schritt 4: Optionen anpassen
 
-### Via YAML
+Alle Optionen stehen im visuellen Editor. Die YAML-Namen dienen nur als
+Referenz, etwa zum Nachschlagen im Code-Editor:
 
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-title: ANKÜNFTE
-max_flights: 8
-flip_duration: 800
-flip_delay: 50
-```
+| Option | Standard | Bedeutung |
+|---|---|---|
+| `entity` | – | Ankunfts- oder Abflug-Sensor (erforderlich) |
+| `title` | automatisch | Überschrift; leer = Richtung der Tafel |
+| `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
+| `max_flights` | `8` | Anzahl angezeigter Flüge (1–20) |
+| `board` | `auto` | `auto`, `arrivals`, `departures` |
+| `theme` | `auto` | `auto`, `dark`, `light` |
+| `flip_duration` | `800` | Dauer der Flip-Animation (ms) |
+| `flip_delay` | `50` | Verzögerung zwischen Zeichen (ms) |
+| `visible_fields` | alle | Sichtbare Spalten |
 
-## Schritt 4: Konfiguration anpassen
+### Unterstützte Sensoren
 
-### Verfügbare Entities
+- `sensor.flightradar24_airport_arrivals` – Ankunft eines Flughafens
+- `sensor.flightradar24_airport_departures` – Abflug eines Flughafens
 
-Diese Card ist eine Ankunfts-/Abflugtafel und unterstützt die beiden Airport-Sensoren:
+Die Area-Sensoren der Integration (`current_in_area`, `entered_area`,
+`exited_area`, `additional_tracked`) werden von dieser Card nicht unterstützt –
+sie liefern Live-Positionsdaten statt Fahrplandaten. Die Sensoren selbst
+bleiben unverändert nutzbar, nur eben in anderen Karten.
 
-```yaml
-# Ankünfte
-entity: sensor.flightradar24_airport_arrivals
+### Ankunft und Abflug zusammen anzeigen
 
-# Abflüge
-entity: sensor.flightradar24_airport_departures
-```
+Beide Tafeln jeweils als **eigene Karte** hinzufügen und im Dashboard
+untereinander anordnen.
 
-Die Area-Sensoren der Integration (`current_in_area`, `entered_area`, `exited_area`,
-`additional_tracked`) werden von dieser Card nicht unterstützt – sie liefern
-Live-Positionsdaten statt Fahrplandaten. Die Sensoren selbst bleiben unverändert
-nutzbar, nur eben in anderen Karten.
-
-### Animations-Geschwindigkeit anpassen
-
-**Schnelle Animation:**
-```yaml
-flip_duration: 400
-flip_delay: 25
-```
-
-**Standard:**
-```yaml
-flip_duration: 800
-flip_delay: 50
-```
-
-**Langsam & dramatisch:**
-```yaml
-flip_duration: 1500
-flip_delay: 120
-```
-
-### Anzahl der Flüge
-
-```yaml
-# Kompakt
-max_flights: 4
-
-# Standard
-max_flights: 8
-
-# Viele Flüge
-max_flights: 15
-```
-
-## Erweiterte Konfigurationen
-
-### Mehrere Tafeln kombinieren
-
-```yaml
-type: vertical-stack
-cards:
-  - type: custom:flightradar24-splitflap-card
-    entity: sensor.flightradar24_airport_arrivals
-    title: ANKÜNFTE
-    max_flights: 5
-
-  - type: custom:flightradar24-splitflap-card
-    entity: sensor.flightradar24_airport_departures
-    title: ABFLÜGE
-    max_flights: 3
-    flip_duration: 600
-```
-
-### Mit Bedingungen
-
-Zeige die Card nur wenn Flüge vorhanden sind:
-
-```yaml
-type: conditional
-conditions:
-  - condition: numeric_state
-    entity: sensor.flightradar24_airport_arrivals
-    above: 0
-card:
-  type: custom:flightradar24-splitflap-card
-  entity: sensor.flightradar24_airport_arrivals
-  title: ANKÜNFTE
-```
-
-### Vollbild-Ansicht
-
-Perfekt für Tablets oder dedizierte Displays:
-
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-title: ANKÜNFTE FRANKFURT
-max_flights: 12
-flip_duration: 1000
-flip_delay: 80
-```
+> **Nicht** über eine Stapel-Karte (`vertical-stack`, `grid`, …) kombinieren:
+> Eine Stapel-Karte meldet Home Assistant ihre eigene Größe für die ganze
+> Gruppe, wodurch die Höhe der enthaltenen Tafeln nicht mehr richtig berechnet
+> wird und der Abschnitt in den darunterliegenden überläuft.
 
 ## Problembehandlung
 
@@ -195,6 +119,11 @@ flip_delay: 80
 2. Suche nach `sensor.flightradar24_airport_arrivals`
 3. Prüfe ob `flights` Attribut Daten enthält
 
+**Karte läuft in den darunterliegenden Abschnitt über**
+
+Tritt auf, wenn die Karte in einer Stapel-Karte steckt. Jede Tafel als eigene
+Karte einfügen.
+
 **Mögliche Ursachen:**
 - Aktuell keine Flüge für diesen Flughafen gemeldet
 - FlightRadar24 Integration nicht korrekt konfiguriert
@@ -202,10 +131,7 @@ flip_delay: 80
 
 ### Animation ruckelt
 
-**Reduziere die Anzahl der Flüge:**
-```yaml
-max_flights: 4
-```
+**Reduziere die Anzahl der Flüge** im Editor (Option „Maximale Anzahl Flüge").
 
 **Oder verlängere das Update-Intervall:**
 
@@ -220,40 +146,16 @@ In der FlightRadar24 Integration:
 2. Home Assistant neu starten
 3. In Inkognito-Modus testen
 
-## Optimale Einstellungen
+## Empfohlene Einstellungen
 
-### Für Realismus
+Alles davon im visuellen Editor einstellbar.
 
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-title: ANKÜNFTE
-max_flights: 8
-flip_duration: 800    # Echte Tafeln sind etwa so schnell
-flip_delay: 60        # Schöner Welleneffekt
-```
-
-### Für Performance
-
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-title: FLÜGE
-max_flights: 5        # Weniger Flüge = besser Performance
-flip_duration: 600    # Schnellere Animation
-flip_delay: 30
-```
-
-### Für große Displays
-
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-title: ANKÜNFTE MONITOR
-max_flights: 15
-flip_duration: 1000
-flip_delay: 100
-```
+| Einsatz | Anzahl Flüge | Dauer der Animation | Verzögerung |
+|---|---|---|---|
+| Realistisch | 8 | 800 ms – echte Tafeln sind etwa so schnell | 60 ms |
+| Schwächere Geräte | 5 | 600 ms | 30 ms |
+| Große Displays | 15 | 1000 ms | 100 ms |
+| Smartphone | 4 | 800 ms | 50 ms |
 
 ## Tipps & Tricks
 
@@ -270,7 +172,7 @@ flip_delay: 100
    Die Card passt sich automatisch an dein Theme an
 
 5. **Mobile Optimierung**  
-   Auf Smartphones `max_flights: 4` verwenden
+   Auf Smartphones weniger Flüge anzeigen lassen
 
 ## Support
 

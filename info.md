@@ -16,42 +16,21 @@ Diese Card benötigt die [FlightRadar24 Integration](https://github.com/Alexandr
 
 ## Schnellstart
 
-**Für Flughafen Ankünfte:**
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-```
+Karte über die Oberfläche hinzufügen: Dashboard bearbeiten →
+**Karte hinzufügen** → nach „FlightRadar24 Split-Flap Card" suchen → Sensor
+auswählen. YAML ist nicht nötig.
 
-**Für Flughafen Abflüge:**
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_departures
-```
+Zur Auswahl stehen nur die Ankunfts- und Abflugtafeln der FlightRadar24-
+Integration.
 
 ## Konfiguration
 
-| Option | Standard | Beschreibung |
-|--------|----------|--------------|
-| `entity` | **erforderlich** | FlightRadar24 Airport-Sensor (Arrivals oder Departures) |
-| `title` | automatisch | Überschrift |
-| `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
-| `max_flights` | `8` | Anzahl Flüge |
-| `board` | `auto` | `auto`, `arrivals`, `departures` – Richtung der Tafel |
-| `theme` | `auto` | `auto`, `dark`, `light` – Darstellung |
-| `flip_duration` | `800` | Animation Dauer (ms) |
-| `flip_delay` | `50` | Verzögerung zwischen Buchstaben (ms) |
-| `visible_fields` | alle | Welche Spalten angezeigt werden (inkl. `expected`) |
+Alle Optionen stehen im visuellen Editor: Titel, Sprache, Anzahl der Flüge,
+Richtung der Tafel, helles/dunkles Erscheinungsbild, Animationsgeschwindigkeit
+und die sichtbaren Spalten.
 
-## Beispiel
-
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-title: ANKÜNFTE FRANKFURT
-max_flights: 10
-flip_duration: 1000
-flip_delay: 75
-```
+> Mehrere Tafeln bitte als **eigene Karten** einfügen, nicht über eine
+> Stapel-Karte kombinieren – sonst berechnet Home Assistant die Höhe falsch.
 
 ## Unterstützung
 
