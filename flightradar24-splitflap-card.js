@@ -787,24 +787,40 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     this.shadowRoot.getElementById('show_speed')?.addEventListener('change', () => this.valueChanged());
   }
 
+  /**
+   * @param {string} id
+   * @returns {HTMLInputElement | null}
+   */
+  getInput(id) {
+    return /** @type {HTMLInputElement | null} */ (this.shadowRoot.getElementById(id));
+  }
+
+  /**
+   * @param {string} id
+   * @returns {HTMLSelectElement | null}
+   */
+  getSelect(id) {
+    return /** @type {HTMLSelectElement | null} */ (this.shadowRoot.getElementById(id));
+  }
+
   valueChanged() {
     const newConfig = {
-      entity: this.shadowRoot.getElementById('entity')?.value || '',
-      title: this.shadowRoot.getElementById('title')?.value || '',
-      language: this.shadowRoot.getElementById('language')?.value || 'en',
-      max_flights: parseInt(this.shadowRoot.getElementById('max_flights')?.value) || 8,
-      flip_duration: parseInt(this.shadowRoot.getElementById('flip_duration')?.value) || 800,
-      flip_delay: parseInt(this.shadowRoot.getElementById('flip_delay')?.value) || 50,
-      mode: this.shadowRoot.getElementById('mode')?.value || 'auto',
+      entity: this.getSelect('entity')?.value || '',
+      title: this.getInput('title')?.value || '',
+      language: this.getSelect('language')?.value || 'en',
+      max_flights: parseInt(this.getInput('max_flights')?.value) || 8,
+      flip_duration: parseInt(this.getInput('flip_duration')?.value) || 800,
+      flip_delay: parseInt(this.getInput('flip_delay')?.value) || 50,
+      mode: this.getSelect('mode')?.value || 'auto',
       visible_fields: {
-        time: this.shadowRoot.getElementById('show_time')?.checked !== false,
-        flight: this.shadowRoot.getElementById('show_flight')?.checked !== false,
-        from: this.shadowRoot.getElementById('show_from')?.checked !== false,
-        to: this.shadowRoot.getElementById('show_to')?.checked === true,
-        status: this.shadowRoot.getElementById('show_status')?.checked !== false,
-        aircraft: this.shadowRoot.getElementById('show_aircraft')?.checked !== false,
-        altitude: this.shadowRoot.getElementById('show_altitude')?.checked === true,
-        speed: this.shadowRoot.getElementById('show_speed')?.checked === true
+        time: this.getInput('show_time')?.checked !== false,
+        flight: this.getInput('show_flight')?.checked !== false,
+        from: this.getInput('show_from')?.checked !== false,
+        to: this.getInput('show_to')?.checked === true,
+        status: this.getInput('show_status')?.checked !== false,
+        aircraft: this.getInput('show_aircraft')?.checked !== false,
+        altitude: this.getInput('show_altitude')?.checked === true,
+        speed: this.getInput('show_speed')?.checked === true
       }
     };
     
