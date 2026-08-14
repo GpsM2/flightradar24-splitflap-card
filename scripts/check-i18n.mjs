@@ -9,7 +9,17 @@
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { FALLBACK_TRANSLATIONS } from '../dist/flightradar24-splitflap-card.js';
+
+// The card is a browser module: it subclasses HTMLElement and registers
+// custom elements at import time. Stub just enough of the DOM for Node to
+// evaluate it, so this check reads the real exported value rather than a
+// copy that could itself drift.
+globalThis.HTMLElement = class {};
+globalThis.customElements = { define() {} };
+globalThis.window = globalThis;
+
+const { FALLBACK_TRANSLATIONS } =
+  await import('../dist/flightradar24-splitflap-card.js');
 
 const dir = fileURLToPath(new URL('../dist/translations/', import.meta.url));
 
