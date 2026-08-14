@@ -8,20 +8,20 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
 
 **Noch in aktiver Entwicklung.** Feedback und Beiträge sind willkommen – siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
-![Ankünfte, dunkles Theme](docs/screenshots/arrivals-dark.png)
+![Ankunft, dunkles Theme](docs/screenshots/arrivals-dark.png)
 
 <details>
-<summary>Weitere Ansichten (Abflüge, helles Theme)</summary>
+<summary>Weitere Ansichten (Abflug, helles Theme)</summary>
 
-![Abflüge, dunkles Theme](docs/screenshots/departures-dark.png)
-![Ankünfte, helles Theme](docs/screenshots/arrivals-light.png)
+![Abflug, dunkles Theme](docs/screenshots/departures-dark.png)
+![Ankunft, helles Theme](docs/screenshots/arrivals-light.png)
 
 </details>
 
 ## Features
 
 - Authentische Split-Flap-Animation – jedes Zeichen dreht sich einzeln, nur geänderte Zeichen werden animiert
-- Für die Airport-Sensoren der Integration: Ankünfte und Abflüge eines Flughafens
+- Für die Airport-Sensoren der Integration: Ankunft und Abflug eines Flughafens
 - Verspätungsanzeige: geplante und erwartete Zeit nebeneinander, farblich abgesetzt
 - Heller und dunkler Modus, folgt automatisch dem Home-Assistant-Theme
 - Responsives Raster: die Kacheln verkleinern sich, bis die Tafel in die Karte passt
@@ -56,100 +56,80 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
    - Ressourcentyp: **JavaScript-Modul**
 4. Browser-Cache leeren (Strg+F5)
 
-## Konfiguration
+## Karte hinzufügen
 
-Alle Optionen sind auch über den visuellen Editor verfügbar (Karte hinzufügen → „FlightRadar24 Split-Flap Card").
+Die Karte wird über die Oberfläche von Home Assistant eingerichtet – YAML ist
+nicht nötig.
 
-### Minimal
+1. Dashboard bearbeiten → **Karte hinzufügen**
+2. Nach „FlightRadar24 Split-Flap Card" suchen und auswählen
+3. Im Editor den gewünschten Sensor wählen – zur Auswahl stehen nur die
+   Ankunfts- und Abflugtafeln, andere FlightRadar24-Sensoren werden
+   ausgeblendet
+4. Restliche Optionen nach Bedarf anpassen und speichern
 
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals
-```
+Ab Home Assistant 2026.6 geht es noch direkter: beim Hinzufügen einer Karte
+zuerst den Sensor auswählen – diese Karte wird dann automatisch vorgeschlagen.
 
-### Alle Optionen
+> **Zwei Tafeln nebeneinander?** Jede Tafel als **eigene Karte** einfügen, nicht
+> über eine Stapel-Karte (`vertical-stack`) kombinieren. Eine Stapel-Karte meldet
+> Home Assistant ihre eigene Größe für die ganze Gruppe, wodurch die Höhe der
+> enthaltenen Tafeln nicht mehr richtig berechnet wird und der Abschnitt in den
+> darunterliegenden überläuft.
 
-```yaml
-type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_airport_arrivals  # erforderlich
-title: ANKÜNFTE FRANKFURT   # Überschrift, Standard: automatisch anhand der Entity
-language: de                # en, de, es, fr – ohne Angabe: Sprache von Home Assistant
-max_flights: 8               # Anzahl angezeigter Flüge, Standard: 8
-board: auto                  # auto, arrivals, departures – Standard: auto
-theme: auto                  # auto, dark, light – Standard: auto (folgt Home Assistant)
-flip_duration: 800           # Dauer der Flip-Animation in ms, Standard: 800
-flip_delay: 50                # Verzögerung zwischen Buchstaben in ms, Standard: 50
-visible_fields:               # welche Spalten angezeigt werden
-  time: true
-  expected: true
-  flight: true
-  airport: true
-  status: true
-  aircraft: true
-```
+## Optionen
 
-### Ankünfte oder Abflüge
+Alle Optionen stehen im visuellen Editor zur Verfügung. Die YAML-Namen sind hier
+nur als Referenz aufgeführt – etwa zum Nachschlagen im Code-Editor.
+
+| Option | Standard | Bedeutung |
+|---|---|---|
+| `entity` | – | Ankunfts- oder Abflug-Sensor (erforderlich) |
+| `title` | automatisch | Überschrift; leer = Richtung der Tafel |
+| `language` | Sprache von HA | `en`, `de`, `es`, `fr` |
+| `max_flights` | `8` | Anzahl angezeigter Flüge |
+| `board` | `auto` | `auto`, `arrivals`, `departures` |
+| `theme` | `auto` | `auto`, `dark`, `light` |
+| `flip_duration` | `800` | Dauer der Flip-Animation (ms) |
+| `flip_delay` | `50` | Verzögerung zwischen Zeichen (ms) |
+| `visible_fields` | alle | Sichtbare Spalten (siehe Editor) |
+
+### Ankunft oder Abflug
 
 Die Card erkennt selbst, ob der gewählte Sensor eine Ankunfts- oder
 Abflugtafel ist, und passt sich an:
 
-| | Ankünfte | Abflüge |
+| | Ankunft | Abflug |
 |---|---|---|
 | Spaltenüberschrift | `VON` | `NACH` |
 | Angezeigte Zeit | geplante Ankunft | geplanter Abflug |
-| Automatischer Titel | `ANKÜNFTE` | `ABFLÜGE` |
+| Automatischer Titel | `ANKUNFT` | `ABFLUG` |
 
 Erkannt wird das am Icon des Sensors, das die Integration je Richtung
 vorgibt. Nur falls das fehlschlägt – etwa weil das Icon in Home Assistant
-überschrieben wurde – lässt sich die Richtung mit `board: arrivals` bzw.
-`board: departures` fest vorgeben.
+überschrieben wurde – lässt sich die Richtung im Editor unter
+**Richtung der Tafel** fest vorgeben.
 
 Ein Flug nennt immer nur den *anderen* Flughafen: Auf einer Ankunftstafel
 ist das die Herkunft, auf einer Abflugtafel das Ziel. Deshalb gibt es genau
-eine Flughafen-Spalte (`visible_fields.airport`), deren Beschriftung sich
-mit der Richtung ändert.
+eine Flughafen-Spalte, deren Beschriftung sich mit der Richtung ändert.
 
 ## Unterstützte Entities
 
 Diese Card ist eine Ankunfts-/Abflugtafel und arbeitet mit den Airport-Sensoren der Integration:
 
-- `sensor.flightradar24_airport_arrivals` – Ankünfte eines Flughafens
-- `sensor.flightradar24_airport_departures` – Abflüge eines Flughafens
+- `sensor.flightradar24_airport_arrivals` – Ankunft eines Flughafens
+- `sensor.flightradar24_airport_departures` – Abflug eines Flughafens
 
 Angezeigt werden können: Zeit, Flugnummer, Herkunft/Ziel, Status und Flugzeugtyp.
 
 Die Area-Sensoren der Integration (`current_in_area`, `entered_area`, `exited_area`, `additional_tracked`) werden von dieser Card bewusst nicht unterstützt – sie liefern Live-Positionsdaten statt Fahrplandaten und passen nicht zum Format einer Anzeigetafel. Die Sensoren selbst bleiben davon unberührt und können weiterhin in anderen Karten und Automationen genutzt werden.
 
-## Beispiele
+## Ankunft und Abflug zusammen anzeigen
 
-**Ankünfte und Abflüge kombiniert**
-
-```yaml
-type: vertical-stack
-cards:
-  - type: custom:flightradar24-splitflap-card
-    entity: sensor.flightradar24_airport_arrivals
-    title: ANKÜNFTE
-    max_flights: 5
-  - type: custom:flightradar24-splitflap-card
-    entity: sensor.flightradar24_airport_departures
-    title: ABFLÜGE
-    max_flights: 5
-```
-
-**Nur bei vorhandenen Flügen anzeigen**
-
-```yaml
-type: conditional
-conditions:
-  - condition: numeric_state
-    entity: sensor.flightradar24_airport_arrivals
-    above: 0
-card:
-  type: custom:flightradar24-splitflap-card
-  entity: sensor.flightradar24_airport_arrivals
-  title: ANKÜNFTE
-```
+Beide Tafeln jeweils als **eigene Karte** hinzufügen und im Dashboard
+untereinander anordnen. Nicht über eine Stapel-Karte kombinieren – siehe den
+Hinweis oben.
 
 ## Problembehandlung
 
@@ -160,6 +140,11 @@ card:
 
 **Keine Flüge sichtbar**
 - **Entwicklerwerkzeuge** → **Zustände** → prüfen, ob der Sensor ein `flights`-Attribut mit Einträgen liefert
+
+**Karte läuft in den darunterliegenden Abschnitt über**
+- Tritt auf, wenn die Karte in einer Stapel-Karte (`vertical-stack`,
+  `grid`, …) steckt: die Stapel-Karte meldet Home Assistant ihre eigene
+  Größe für die ganze Gruppe. Jede Tafel als eigene Karte einfügen.
 
 **Animation wirkt ruckelig**
 - `max_flights` reduzieren oder das Scan-Interval der FlightRadar24-Integration auf mindestens 60 Sekunden erhöhen

@@ -7,6 +7,14 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Geändert
+- Deutsche Beschriftung der Tafeln auf Einzahl umgestellt: `ANKUNFT` und
+  `ABFLUG` statt `ANKÜNFTE` und `ABFLÜGE`.
+- Dokumentation auf die Einrichtung über die Oberfläche umgestellt. Die
+  YAML-Beispiele sind entfernt – insbesondere das Beispiel mit der
+  Stapel-Karte, das dazu führte, dass Home Assistant die Höhe der Karte
+  falsch berechnete und der Abschnitt in den darunterliegenden überlief.
+
 ## [0.5.0] - 2026-08-15
 
 Promoted from 0.5.0-beta.2 after maintainer testing, no code changes. See
