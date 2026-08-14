@@ -540,6 +540,10 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
       const inner = setTimeout(() => {
         element.textContent = newChar;
+        // `blank` drives both the empty-flap background and whether the
+        // status tone colours this tile, so it has to follow the character
+        // rather than stay at whatever createCell() first saw.
+        element.classList.toggle('blank', newChar === ' ');
         element.classList.remove('flipping');
         this._timers.delete(inner);
       }, this.config.flip_duration / 2);
@@ -611,6 +615,13 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       columns.forEach(column => {
         fragment.appendChild(this.createCell(flight, column, rowIndex));
       });
+
+      // Carries the row background across the trailing 1fr track, so the
+      // striping reaches the card edge even with columns hidden.
+      const filler = document.createElement('div');
+      filler.className = rowIndex % 2 === 1 ? 'cell filler odd' : 'cell filler';
+      filler.dataset.row = String(rowIndex);
+      fragment.appendChild(filler);
     });
 
     grid.appendChild(fragment);
@@ -808,9 +819,13 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           scrollbar-width: thin;
         }
 
+        /* Trailing 1fr track: the data columns are max-content, so with a
+           column hidden they no longer reach the card's edge and the row
+           striping used to stop mid-card. The filler cell carries the same
+           background so each row runs to the edge whatever is shown. */
         .grid {
           display: grid;
-          grid-template-columns: repeat(${columns.length}, max-content);
+          grid-template-columns: repeat(${columns.length}, max-content) 1fr;
           min-width: max-content;
           align-items: center;
         }
@@ -839,11 +854,38 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
         .cell.odd { background: var(--fr24-row-alt-bg); }
 
+        /* The grid centres its items, so the filler would only be as tall
+           as its own padding and its background would stop short of the
+           row. Stretch it instead, and give it no padding of its own. */
+        .cell.filler,
+        .colhead.filler {
+          padding: 0;
+          align-self: stretch;
+        }
+
         .flap-char {
           width: var(--fr24-tile-w);
           height: var(--fr24-tile-h);
-          line-height: var(--fr24-tile-h);
           flex: 0 0 auto;
+          /* Centring the line box is not enough: it is sized from the
+             font's ascent and descent, but the board only ever renders
+             uppercase, digits and punctuation, which use none of the
+             descent. The ink therefore sits above the tile's middle — and
+             above the fold line, which should cut a character in half.
+             The padding pushes it back down; box-sizing keeps the tile the
+             same height.
+
+             Derived from the font's metric ratios rather than one measured
+             size: for Courier New the ascent, descent and cap height are
+             about 0.83em, 0.30em and 0.58em, which puts the ink
+             (0.30 - 0.83)/2 + 0.58/2 ≈ 0.025em above centre. Padding is
+             halved by the centring, hence twice that. */
+          box-sizing: border-box;
+          padding-top: 0.05em;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
           text-align: center;
           font-size: var(--fr24-tile-font);
           font-weight: 700;
@@ -930,6 +972,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           <div class="grid">
             ${columns.map(column =>
               `<div class="colhead">${this.escape(this.t(column.label))}</div>`).join('')}
+            <div class="colhead filler"></div>
           </div>
         </div>
         <div class="empty" hidden>${this.escape(this.t('noFlights'))}</div>

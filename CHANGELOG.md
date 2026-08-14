@@ -7,6 +7,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben
+- Einzelne Zeichen behielten nach einer Aktualisierung die falsche Farbe
+  (betraf hellen und dunklen Modus). Die Markierung für leere Klappen
+  wurde beim Umblättern nicht mitgeführt, sodass Kacheln mit Buchstaben
+  weiterhin als leer galten – und damit weder eingefärbt wurden noch den
+  richtigen Hintergrund bekamen.
+- Wurde eine Spalte ausgeblendet, endete die Tafel mitten in der Karte
+  statt am Rand. Die Zeilen laufen jetzt unabhängig von der Spaltenzahl
+  bis zum Kartenrand durch.
+- Die Zeichen saßen minimal zu hoch auf den Klappen und damit über der
+  Faltlinie, die eigentlich mittig durch das Zeichen laufen soll.
+
 ## [0.5.0-beta.1] - 2026-08-14
 
 ### Behoben
