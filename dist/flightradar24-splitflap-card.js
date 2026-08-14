@@ -357,7 +357,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
     if (vf.airport !== false) fields.airport = (flight.airport_city || flight.airport_code_iata || '').substring(0, 15).padEnd(15, ' ');
     if (vf.status !== false) fields.status = this.formatStatus(flight).substring(0, 12).padEnd(12, ' ');
-    if (vf.aircraft !== false) fields.aircraft = (flight.aircraft_model || '').substring(0, 12).padEnd(12, ' ');
+    if (vf.aircraft !== false) fields.aircraft = this.truncateAtWord(flight.aircraft_model || '', 14).padEnd(14, ' ');
 
     return fields;
   }
@@ -471,6 +471,11 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   /**
+   * Cuts at the last space *or* hyphen at or before `max`, whichever is
+   * closer — aircraft models are compound tokens like "A320-214", where a
+   * space-only rule would throw away the whole family to avoid a mid-token
+   * cut ("Airbus A320-214" -> "Airbus", losing "A320" along with "214").
+   *
    * @param {string} text
    * @param {number} max
    * @returns {string}
@@ -479,8 +484,8 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     if (text.length <= max) return text;
 
     const cut = text.substring(0, max);
-    const lastSpace = cut.lastIndexOf(' ');
-    return lastSpace > 0 ? cut.substring(0, lastSpace) : cut;
+    const boundary = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf('-'));
+    return boundary > 0 ? cut.substring(0, boundary) : cut;
   }
 
   animateRow(rowIndex, oldData, newData) {
@@ -581,7 +586,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     if (vf.flight !== false) columns.push({ name: 'flight', label: 'flight', width: 8 });
     if (vf.airport !== false) columns.push({ name: 'airport', label: departures ? 'to' : 'from', width: 15 });
     if (vf.status !== false) columns.push({ name: 'status', label: 'status', width: 12 });
-    if (vf.aircraft !== false) columns.push({ name: 'aircraft', label: 'aircraft', width: 12 });
+    if (vf.aircraft !== false) columns.push({ name: 'aircraft', label: 'aircraft', width: 14 });
 
     return columns;
   }
@@ -711,6 +716,10 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-tile-w: ${tileWidth};
           --fr24-tile-h: calc(var(--fr24-tile-w) * 2.15);
           --fr24-tile-font: calc(var(--fr24-tile-w) * 1.25);
+
+          /* Both masthead side slots share this width, wide enough for the
+             clock (the larger of the two) — see the .masthead comment. */
+          --fr24-side-w: clamp(40px, 5.8cqi, 60px);
         }
 
         :host([data-theme="light"]) {
@@ -755,9 +764,14 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           );
         }
 
+        /* Icon and clock used to sit in "auto"-sized tracks, which only
+           center the title correctly if both happen to render the same
+           width — they don't (icon ~24px, clock ~68px), so the title sat
+           ~22px left of true center. Both now share one fixed track width
+           instead, wide enough for the clock; the icon centers within it. */
         .masthead {
           display: grid;
-          grid-template-columns: auto 1fr auto;
+          grid-template-columns: var(--fr24-side-w) 1fr var(--fr24-side-w);
           align-items: center;
           gap: 12px;
           padding: 12px 16px;
@@ -767,7 +781,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           width: clamp(18px, 3.4cqi, 24px);
           height: clamp(18px, 3.4cqi, 24px);
           fill: var(--fr24-accent);
-          flex: 0 0 auto;
+          justify-self: center;
         }
 
         .title {
@@ -780,6 +794,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
         }
 
         .clock {
+          justify-self: center;
           color: var(--fr24-accent);
           font-size: clamp(15px, 3.2cqi, 20px);
           font-weight: 700;
@@ -991,16 +1006,58 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     this.setAttribute('data-theme', dark ? 'dark' : 'light');
   }
 
-  getCardSize() {
-    return 3;
+  /**
+   * `getCardSize()`/`getLayoutOptions()` are how a card tells Home Assistant
+   * how tall it actually is, so Masonry/Sections can size the space around
+   * it instead of leaving a gap or clipping it. Both used to return fixed
+   * numbers regardless of `max_flights`, `title`, or how many
+   * `visible_fields` are shown — this estimates instead: masthead + column
+   * header (2 rows) plus one row per flight, converted from this card's own
+   * ~36px row height to HA's ~50px size unit.
+   *
+   * Approximate by nature — HA's own docs call this a "good faith
+   * estimate" — and not verified against a live HA frontend, only against
+   * the numbers this card itself renders at. Static so both the instance
+   * method below and its config-less fallback can share one formula
+   * instead of the two drifting apart.
+   *
+   * @param {number} maxFlights
+   * @returns {number}
+   */
+  static estimateRowUnits(maxFlights) {
+    return Math.max(1, Math.ceil(((2 + maxFlights) * 36) / 50));
   }
 
+  getCardSize() {
+    return FlightRadar24SplitFlapCard.estimateRowUnits(this.config?.max_flights || 8);
+  }
+
+  /**
+   * Instance method: Home Assistant prefers this over the static one below
+   * once the card is actually configured, which is what makes a dynamic
+   * (config-dependent) result possible at all — the static version has no
+   * instance to read `max_flights` from.
+   *
+   * @returns {Record<string, number>}
+   */
+  getLayoutOptions() {
+    return {
+      ...FlightRadar24SplitFlapCard.getLayoutOptions(),
+      grid_rows: FlightRadar24SplitFlapCard.estimateRowUnits(this.config?.max_flights || 8)
+    };
+  }
+
+  /**
+   * Static fallback: what the card picker shows before any configuration
+   * exists, so there's nothing dynamic to base it on yet — `getStubConfig`'s
+   * default `max_flights: 8` is the closest available estimate.
+   */
   static getLayoutOptions() {
     return {
-      grid_rows: 3,
+      grid_rows: FlightRadar24SplitFlapCard.estimateRowUnits(8),
       grid_columns: 12,
-      grid_min_rows: 2,
-      grid_max_rows: 6,
+      grid_min_rows: 3,
+      grid_max_rows: 16,
       grid_min_columns: 6
     };
   }

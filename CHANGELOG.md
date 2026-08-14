@@ -7,6 +7,19 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Behoben
+- `getCardSize()`/`getLayoutOptions()` gaben feste Werte zurück, unabhängig
+  von `max_flights`. Home Assistant konnte die Höhe des reservierten
+  Bereichs (Masonry- wie Sections-Ansicht) dadurch nicht an die Karte
+  anpassen. Beide werden jetzt aus `max_flights` berechnet.
+- Der Flugzeugtyp wurde bei 12 Zeichen hart abgeschnitten – bei 28 von 29
+  echten Modellen in Produktivdaten, meist mit einem hängenden Bindestrich
+  am Ende (`Airbus A320-`). Die Spalte ist jetzt 14 Zeichen breit und
+  schneidet an der letzten Wort- oder Bindestrich-Grenze.
+- Der Titel in der Kopfzeile saß 22 px links der Mitte, weil Icon- und
+  Uhr-Spalte unterschiedlich breit waren. Beide teilen sich jetzt eine
+  gemeinsame Breite.
+
 ## [0.4.0] - 2026-08-14
 
 Promoted from 0.4.0-beta.1 after maintainer testing, no code changes. See
