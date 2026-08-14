@@ -8,7 +8,15 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
 
 **Noch in aktiver Entwicklung.** Feedback und Beiträge sind willkommen – siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
-![Split-Flap Demo](https://via.placeholder.com/800x400.png?text=Demo+GIF+hier)
+![Ankünfte, dunkles Theme](docs/screenshots/arrivals-dark.png)
+
+<details>
+<summary>Weitere Ansichten (Abflüge, helles Theme)</summary>
+
+![Abflüge, dunkles Theme](docs/screenshots/departures-dark.png)
+![Ankünfte, helles Theme](docs/screenshots/arrivals-light.png)
+
+</details>
 
 ## Features
 

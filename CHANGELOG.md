@@ -7,6 +7,8 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.4.0-beta.1] - 2026-08-14
+
 ### Hinzugefügt
 - Verspätungsanzeige: Neben der geplanten steht jetzt die erwartete Zeit,
   sofern sie abweicht. Die Statusspalte zeigt die Abweichung in Minuten
@@ -154,7 +156,8 @@ that entry below for what's actually in this release.
 - Ereignisbasierte Updates (keine Polling)
 - Optimierte Render-Performance durch selektive Updates
 
-[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.4.0-beta.1...HEAD
+[0.4.0-beta.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.3.0...0.4.0-beta.1
 [0.3.0]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.3.0-beta.1...0.3.0
 [0.3.0-beta.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/v0.2.0-beta...0.3.0-beta.1
 [0.2.0]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/v0.1.0...v0.2.0
