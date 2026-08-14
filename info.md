@@ -40,7 +40,7 @@ entity: sensor.flightradar24_airport_departures
 | `theme` | `auto` | `auto`, `dark`, `light` – Darstellung |
 | `flip_duration` | `800` | Animation Dauer (ms) |
 | `flip_delay` | `50` | Verzögerung zwischen Buchstaben (ms) |
-| `visible_fields` | alle | Welche Spalten angezeigt werden |
+| `visible_fields` | alle | Welche Spalten angezeigt werden (inkl. `expected`) |
 
 ## Beispiel
 

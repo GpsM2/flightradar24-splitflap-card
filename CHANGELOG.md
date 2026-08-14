@@ -7,6 +7,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Verspätungsanzeige: Neben der geplanten steht jetzt die erwartete Zeit,
+  sofern sie abweicht. Die Statusspalte zeigt die Abweichung in Minuten
+  (`+8 MIN`, `-12 MIN`) bzw. `PÜNKTLICH`, `GELANDET`, `ANNULLIERT`.
+- Farbcodierung des Status: Verspätungen und Annullierungen rot, pünktliche
+  Flüge grün. Die Farbe ergänzt den Text, ersetzt ihn nicht.
+- Uhrzeit und ein Richtungssymbol (Start/Landung) im Kopf der Tafel.
+- Die Airline-Kennung der Flugnummer ist farblich abgesetzt.
+- Annullierte Flüge zeigen statt einer Uhrzeit Striche.
+
 ### Behoben
 - Spalten liefen auf schmalen Karten aus dem Raster und die Beschriftungen
   passten nicht mehr zu den Daten. Kopfzeile und Zeilen teilten sich zwei
