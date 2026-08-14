@@ -1,3 +1,18 @@
+/**
+ * Version of record for this card, logged on load so a user reporting an
+ * issue can read the installed version straight out of the browser console
+ * (HACS caching makes "latest" an unreliable assumption).
+ *
+ * Kept in sync with the release tag; see CLAUDE.md.
+ */
+const CARD_VERSION = '0.3.0-beta.1';
+
+console.info(
+  `%c FLIGHTRADAR24-SPLITFLAP-CARD %c ${CARD_VERSION} `,
+  'color: #1a1a1a; background: #ffa500; font-weight: 700;',
+  'color: #ffa500; background: #1a1a1a; font-weight: 700;'
+);
+
 // FlightRadar24's generic status vocabulary -> translation key.
 //
 // Each flight carries both `status_text` (an English sentence built for
