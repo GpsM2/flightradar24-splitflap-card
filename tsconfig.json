@@ -10,5 +10,5 @@
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["flightradar24-splitflap-card.js", "global.d.ts"]
+  "include": ["dist/flightradar24-splitflap-card.js", "global.d.ts"]
 }

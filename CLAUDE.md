@@ -77,18 +77,38 @@ Equivalent gates before merging any PR:
 - `tsc --noEmit --checkJs` clean, using JSDoc type annotations for type
   safety — no TypeScript migration, no runtime build step added.
 - Both wired into GitHub Actions CI, required to pass before merge.
+- `npm run check:i18n` clean (guards the i18n invariants, see below).
 A minimal `package.json` holds ESLint + TypeScript as devDependencies only;
-the shipped `flightradar24-splitflap-card.js` itself stays plain,
-dependency-free JS — HACS still just serves the raw file.
+the shipped `dist/flightradar24-splitflap-card.js` itself stays plain,
+dependency-free JS — HACS still just serves the raw files, no bundling.
+
+## Shipped layout
+
+Everything HACS delivers lives in `dist/`:
+
+```
+dist/
+  flightradar24-splitflap-card.js
+  translations/{en,de,es,fr}.json
+```
+
+Per the HACS plugin docs, a plugin that needs non-JS files must put *all*
+files (card included) in `dist/` — a single JS file at the repo root would
+be shipped without the translations beside it. Repo-root files
+(`README.md`, `package.json`, `scripts/`, …) are development-only and are
+not delivered to users.
 
 ## Internationalization
 
 - No hardcoded UI text anywhere — including the visual card AND the config
   editor UI.
-- All strings live under `translations/<lang>.json`, loaded at runtime
+- All strings live under `dist/translations/<lang>.json`, loaded at runtime
   relative to the module (`import.meta.url`), with `en` bundled inline as
   fallback so the card never flashes blank/broken text before the fetch
-  resolves.
+  resolves. A failed fetch must never break the card — it stays English.
+- The inline `FALLBACK_TRANSLATIONS` and `translations/en.json` must stay
+  identical, and every language must define the same key set. Both are
+  enforced by `npm run check:i18n` in CI, not by discipline.
 - Dynamically composed strings (e.g. "+12 MIN", "…ft", "…kts") are built
   from translation templates/placeholders — never a hardcoded unit or word
   concatenated onto a number.

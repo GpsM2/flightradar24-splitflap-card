@@ -7,7 +7,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Alle Texte liegen jetzt in `dist/translations/<sprache>.json` und werden
+  zur Laufzeit geladen. Das gilt auch für den Konfigurationseditor, der
+  bisher durchgehend englisch war. Eine neue Sprache erfordert damit keine
+  Änderung am JavaScript mehr.
+- Ohne gesetzte Option `language` folgt die Card der Sprache von Home
+  Assistant (`hass.locale.language`) statt fest Englisch zu verwenden.
+
 ### Behoben
+- Zeiten wurden im englischen Gebietsschema als `07:50 AM` dargestellt und
+  liefen aus der Zeitspalte heraus. Anzeigetafeln nutzen jetzt überall das
+  24-Stunden-Format.
 - Der Status wurde mitten im Wort abgeschnitten und blieb immer englisch:
   aus „Estimated dep 07:40" wurde „Estimated de". Die Card wertet jetzt
   das maschinenlesbare `status`-Feld aus und zeigt den übersetzten Status
@@ -29,6 +40,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   falls das Icon des Sensors überschrieben wurde.
 
 ### Geändert
+- Die ausgelieferten Dateien liegen jetzt im Ordner `dist/`. Bei einer
+  HACS-Installation ändert sich dadurch nichts. Bei manueller Installation
+  muss der gesamte `dist`-Inhalt kopiert werden, und die Ressourcen-URL
+  lautet nun `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`.
 - `visible_fields.from` und `visible_fields.to` sind zu einer Spalte
   `visible_fields.airport` zusammengefasst. Ein Flug nennt immer nur den
   anderen Flughafen – der eigene steht nie in den Daten –, sodass die

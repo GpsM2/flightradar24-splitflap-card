@@ -34,12 +34,14 @@ Falls noch nicht installiert:
 ### Manuelle Installation
 
 1. [Neueste Release](https://github.com/GpsM2/flightradar24-splitflap-card/releases) herunterladen
-2. `flightradar24-splitflap-card.js` nach `/config/www/` kopieren
+2. Den gesamten Inhalt des `dist`-Ordners nach
+   `/config/www/flightradar24-splitflap-card/` kopieren (die JS-Datei und den
+   Ordner `translations/`)
 3. In Home Assistant:
    - **Einstellungen** → **Dashboards**
    - Drei-Punkte-Menü → **Ressourcen**
    - **Ressource hinzufügen**
-   - URL: `/local/flightradar24-splitflap-card.js`
+   - URL: `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`
    - Typ: **JavaScript-Modul**
    - Speichern
 4. Browser-Cache leeren (Strg+F5)

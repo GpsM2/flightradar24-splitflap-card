@@ -15,93 +15,101 @@ const STATUS_KEYS = {
   cancelled: 'canceled'
 };
 
-// Translations
-const translations = {
-  en: {
-    arrivals: "ARRIVALS",
-    departures: "DEPARTURES", 
-    flights: "FLIGHTS",
-    time: "TIME",
-    flight: "FLIGHT",
-    from: "FROM",
-    to: "TO",
-    status: "STATUS",
-    aircraft: "AIRCRAFT",
-    scheduled: "SCHEDULED",
-    canceled: "CANCELLED",
-    diverted: "DIVERTED",
-    landed: "LANDED",
-    expected: "EXPECTED",
-    delayed: "DELAYED",
-    early: "EARLY",
-    departed: "DEPARTED",
-    ontime: "ON TIME",
-    noFlights: "No flights available"
-  },
-  de: {
-    arrivals: "ANKÜNFTE",
-    departures: "ABFLÜGE",
-    flights: "FLÜGE",
-    time: "ZEIT",
-    flight: "FLUG",
-    from: "VON",
-    to: "NACH",
-    status: "STATUS",
-    aircraft: "FLUGZEUG",
-    scheduled: "PLANMÄSSIG",
-    canceled: "ANNULLIERT",
-    diverted: "UMGELEITET",
-    landed: "GELANDET",
-    expected: "ERWARTET",
-    delayed: "VERSPÄTET",
-    early: "FRÜHER",
-    departed: "ABGEFLOGEN",
-    ontime: "PÜNKTLICH",
-    noFlights: "Keine Flüge verfügbar"
-  },
-  es: {
-    arrivals: "LLEGADAS",
-    departures: "SALIDAS",
-    flights: "VUELOS",
-    time: "HORA",
-    flight: "VUELO",
-    from: "DESDE",
-    to: "HASTA",
-    status: "ESTADO",
-    aircraft: "AVIÓN",
-    scheduled: "PROGRAMADO",
-    canceled: "CANCELADO",
-    diverted: "DESVIADO",
-    landed: "ATERRIZADO",
-    expected: "ESPERADO",
-    delayed: "RETRASADO",
-    early: "TEMPRANO",
-    departed: "DESPEGADO",
-    ontime: "A TIEMPO",
-    noFlights: "No hay vuelos disponibles"
-  },
-  fr: {
-    arrivals: "ARRIVÉES",
-    departures: "DÉPARTS",
-    flights: "VOLS",
-    time: "HEURE",
-    flight: "VOL",
-    from: "DE",
-    to: "À",
-    status: "STATUT",
-    aircraft: "AVION",
-    scheduled: "PRÉVU",
-    canceled: "ANNULÉ",
-    diverted: "DÉROUTÉ",
-    landed: "ATTERRI",
-    expected: "ATTENDU",
-    delayed: "RETARDÉ",
-    early: "EN AVANCE",
-    departed: "DÉCOLLÉ",
-    ontime: "À L'HEURE",
-    noFlights: "Aucun vol disponible"
+/** Languages shipped in `translations/`. */
+const SUPPORTED_LANGUAGES = ['en', 'de', 'es', 'fr'];
+
+/**
+ * English is bundled so the board never renders blank or half-built while a
+ * translation file is still being fetched, and so it keeps working if the
+ * fetch fails outright. Everything else is loaded at runtime from
+ * `translations/<lang>.json`.
+ *
+ * Kept byte-identical to `translations/en.json`; `npm run check:i18n`
+ * fails the build if the two drift apart or if a language is missing keys.
+ */
+export const FALLBACK_TRANSLATIONS = {
+    "aircraft": "AIRCRAFT",
+    "arrivals": "ARRIVALS",
+    "canceled": "CANCELLED",
+    "delayed": "DELAYED",
+    "departed": "DEPARTED",
+    "departures": "DEPARTURES",
+    "diverted": "DIVERTED",
+    "early": "EARLY",
+    "editor.board": "Board direction",
+    "editor.boardArrivals": "Arrivals",
+    "editor.boardAuto": "Auto-detect",
+    "editor.boardDepartures": "Departures",
+    "editor.boardHelper": "Detected from the sensor. Override only if the airport column is labelled wrong.",
+    "editor.entity": "Entity",
+    "editor.entityHelper": "Select a FlightRadar24 arrivals or departures sensor",
+    "editor.entityPlaceholder": "Select a sensor…",
+    "editor.fieldAircraft": "Aircraft",
+    "editor.fieldAirport": "Airport (from/to)",
+    "editor.fieldFlight": "Flight number",
+    "editor.fieldStatus": "Status",
+    "editor.fieldTime": "Time",
+    "editor.flipDelay": "Flip delay (ms)",
+    "editor.flipDelayHelper": "Delay between character flips",
+    "editor.flipDuration": "Flip duration (ms)",
+    "editor.flipDurationHelper": "Duration of the flip animation",
+    "editor.language": "Language",
+    "editor.languageAuto": "Automatic",
+    "editor.languageHelper": "Leave on automatic to follow Home Assistant",
+    "editor.loading": "Loading…",
+    "editor.maxFlights": "Maximum flights",
+    "editor.maxFlightsHelper": "Number of rows to display (1-20)",
+    "editor.title": "Title",
+    "editor.titleHelper": "Leave empty to use the board direction",
+    "editor.titlePlaceholder": "Automatic",
+    "editor.visibleFields": "Visible columns",
+    "editor.visibleFieldsHelper": "Choose which columns the board shows",
+    "expected": "EXPECTED",
+    "flight": "FLIGHT",
+    "flights": "FLIGHTS",
+    "from": "FROM",
+    "landed": "LANDED",
+    "noFlights": "No flights available",
+    "ontime": "ON TIME",
+    "scheduled": "SCHEDULED",
+    "status": "STATUS",
+    "time": "TIME",
+    "to": "TO"
+  };
+
+/** Per-language cache of in-flight and resolved fetches, shared by all cards. */
+const translationCache = new Map();
+
+/**
+ * @param {string} lang
+ * @returns {Promise<Record<string, string>>}
+ */
+function loadTranslations(lang) {
+  if (lang === 'en' || !SUPPORTED_LANGUAGES.includes(lang)) {
+    return Promise.resolve(FALLBACK_TRANSLATIONS);
   }
-};
+
+  if (!translationCache.has(lang)) {
+    const url = new URL(`translations/${lang}.json`, import.meta.url);
+    translationCache.set(lang, fetch(url)
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      // A missing or malformed file must not take the card down with it —
+      // English is already on screen and stays.
+      .then(data => ({ ...FALLBACK_TRANSLATIONS, ...data }))
+      .catch(error => {
+        console.warn(
+          `flightradar24-splitflap-card: could not load translations for "${lang}", falling back to English`,
+          error
+        );
+        return FALLBACK_TRANSLATIONS;
+      }));
+  }
+
+  return translationCache.get(lang);
+}
 
 class FlightRadar24SplitFlapCard extends HTMLElement {
   constructor() {
@@ -109,6 +117,46 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.flights = [];
     this.displayedFlights = [];
+    /** @type {Record<string, string>} */
+    this._strings = FALLBACK_TRANSLATIONS;
+  }
+
+  /**
+   * An explicit `language` wins; otherwise follow the Home Assistant UI,
+   * falling back to English for languages this card doesn't ship yet.
+   *
+   * @returns {string}
+   */
+  resolveLanguage() {
+    const configured = this.config?.language;
+    if (configured) {
+      return SUPPORTED_LANGUAGES.includes(configured) ? configured : 'en';
+    }
+
+    const hassLanguage = this._hass?.locale?.language || this._hass?.language;
+    return SUPPORTED_LANGUAGES.includes(hassLanguage) ? hassLanguage : 'en';
+  }
+
+  /**
+   * Swaps the card over to `lang` once its file has loaded. English renders
+   * from the bundled copy immediately, so this never blocks a first paint.
+   */
+  applyLanguage() {
+    const lang = this.resolveLanguage();
+    if (lang === this._loadedLanguage) return;
+
+    this._loadedLanguage = lang;
+    loadTranslations(lang).then(strings => {
+      // A later language change may have won the race while this was in
+      // flight; only the most recent request may touch the DOM.
+      if (this._loadedLanguage !== lang) return;
+
+      this._strings = strings;
+      this.flights = [];
+      this.displayedFlights = [];
+      this.render();
+      if (this._hass) this.hass = this._hass;
+    });
   }
 
   setConfig(config) {
@@ -149,16 +197,21 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       max_flights: config.max_flights || 8,
       flip_duration: config.flip_duration || 800,
       flip_delay: config.flip_delay || 50,
-      language: config.language || 'en',
+      // Deliberately not defaulted here: an unset language means "follow
+      // Home Assistant", which is only knowable once hass arrives.
+      language: config.language || '',
       board: config.board || 'auto',
       visible_fields: visible_fields
     };
 
+    this.applyLanguage();
     this.render();
   }
 
   set hass(hass) {
     this._hass = hass;
+    this.applyLanguage();
+
     const entity = hass.states[this.config.entity];
 
     if (!entity) {
@@ -212,9 +265,17 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     return /departure/i.test(this.config.entity) ? 'departures' : 'arrivals';
   }
 
-  t(key) {
-    const lang = this.config.language || 'en';
-    return translations[lang]?.[key] || translations.en[key] || key;
+  /**
+   * @param {string} key
+   * @param {Record<string, string | number>} [values] placeholder substitutions
+   * @returns {string}
+   */
+  t(key, values) {
+    const template = this._strings[key] || FALLBACK_TRANSLATIONS[key] || key;
+    if (!values) return template;
+
+    return template.replace(/\{(\w+)\}/g, (match, name) =>
+      name in values ? String(values[name]) : match);
   }
 
   updateFlights(newFlights) {
@@ -258,7 +319,13 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   formatTime(date) {
-    return date.toLocaleTimeString(this.config.language || 'en', { hour: '2-digit', minute: '2-digit' });
+    // hourCycle is pinned: airport boards are 24-hour everywhere, and an
+    // "07:50 AM" would also overflow the fixed-width time column.
+    return date.toLocaleTimeString(this.resolveLanguage(), {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    });
   }
 
   /**
@@ -595,7 +662,6 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     return {
       entity: '',
       max_flights: 8,
-      language: 'en',
       board: 'auto',
       visible_fields: {
         time: true,
@@ -616,13 +682,47 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    /** @type {Record<string, string>} */
+    this._strings = FALLBACK_TRANSLATIONS;
+  }
+
+  /**
+   * @param {string} key
+   * @returns {string}
+   */
+  t(key) {
+    return this._strings[key] || FALLBACK_TRANSLATIONS[key] || key;
+  }
+
+  /** @returns {string} */
+  resolveLanguage() {
+    const configured = this._config?.language;
+    if (configured) {
+      return SUPPORTED_LANGUAGES.includes(configured) ? configured : 'en';
+    }
+
+    const hassLanguage = this._hass?.locale?.language || this._hass?.language;
+    return SUPPORTED_LANGUAGES.includes(hassLanguage) ? hassLanguage : 'en';
+  }
+
+  applyLanguage() {
+    const lang = this.resolveLanguage();
+    if (lang === this._loadedLanguage) return;
+
+    this._loadedLanguage = lang;
+    loadTranslations(lang).then(strings => {
+      if (this._loadedLanguage !== lang) return;
+
+      this._strings = strings;
+      this.render();
+    });
   }
 
   setConfig(config) {
     this._config = {
       entity: '',
       title: '',
-      language: 'en',
+      language: '',
       max_flights: 8,
       flip_duration: 800,
       flip_delay: 50,
@@ -636,11 +736,13 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       },
       ...config
     };
+    this.applyLanguage();
     this.render();
   }
 
   set hass(hass) {
     this._hass = hass;
+    this.applyLanguage();
     if (!this._rendered) {
       this.render();
     }
@@ -682,7 +784,8 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
 
   render() {
     if (!this._hass) {
-      this.shadowRoot.innerHTML = '<div style="padding: 16px;">Loading...</div>';
+      this.shadowRoot.innerHTML =
+        `<div style="padding: 16px;">${this.t('editor.loading')}</div>`;
       return;
     }
 
@@ -743,88 +846,89 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       
       <div class="card-config">
         <div class="config-row">
-          <label for="entity">Entity *</label>
+          <label for="entity">${this.t('editor.entity')} *</label>
           <select id="entity">
-            <option value="">Select FlightRadar24 sensor...</option>
+            <option value="">${this.t('editor.entityPlaceholder')}</option>
             ${entities.map(e => `
               <option value="${e.value}" ${config.entity === e.value ? 'selected' : ''}>
                 ${e.label}
               </option>
             `).join('')}
           </select>
-          <div class="helper">Select a FlightRadar24 sensor entity</div>
+          <div class="helper">${this.t('editor.entityHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label for="title">Title (optional)</label>
-          <input type="text" id="title" value="${config.title || ''}" placeholder="Leave empty for auto">
-          <div class="helper">Display title (leave empty for auto-detect)</div>
+          <label for="title">${this.t('editor.title')}</label>
+          <input type="text" id="title" value="${config.title || ''}" placeholder="${this.t('editor.titlePlaceholder')}">
+          <div class="helper">${this.t('editor.titleHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label for="language">Language</label>
+          <label for="language">${this.t('editor.language')}</label>
           <select id="language">
+            <option value="" ${!config.language ? 'selected' : ''}>${this.t('editor.languageAuto')}</option>
             <option value="en" ${config.language === 'en' ? 'selected' : ''}>English</option>
             <option value="de" ${config.language === 'de' ? 'selected' : ''}>Deutsch</option>
             <option value="es" ${config.language === 'es' ? 'selected' : ''}>Español</option>
             <option value="fr" ${config.language === 'fr' ? 'selected' : ''}>Français</option>
           </select>
-          <div class="helper">Display language</div>
+          <div class="helper">${this.t('editor.languageHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label for="max_flights">Maximum Flights</label>
+          <label for="max_flights">${this.t('editor.maxFlights')}</label>
           <input type="number" id="max_flights" value="${config.max_flights || 8}" min="1" max="20">
-          <div class="helper">Number of flights to display (1-20)</div>
+          <div class="helper">${this.t('editor.maxFlightsHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label for="flip_duration">Flip Duration (ms)</label>
+          <label for="flip_duration">${this.t('editor.flipDuration')}</label>
           <input type="number" id="flip_duration" value="${config.flip_duration || 800}" min="200" max="2000" step="100">
-          <div class="helper">Duration of flip animation</div>
+          <div class="helper">${this.t('editor.flipDurationHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label for="flip_delay">Flip Delay (ms)</label>
+          <label for="flip_delay">${this.t('editor.flipDelay')}</label>
           <input type="number" id="flip_delay" value="${config.flip_delay || 50}" min="10" max="200" step="10">
-          <div class="helper">Delay between character flips</div>
+          <div class="helper">${this.t('editor.flipDelayHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label for="board">Board Direction</label>
+          <label for="board">${this.t('editor.board')}</label>
           <select id="board">
-            <option value="auto" ${config.board !== 'arrivals' && config.board !== 'departures' ? 'selected' : ''}>Auto-detect</option>
-            <option value="arrivals" ${config.board === 'arrivals' ? 'selected' : ''}>Arrivals</option>
-            <option value="departures" ${config.board === 'departures' ? 'selected' : ''}>Departures</option>
+            <option value="auto" ${config.board !== 'arrivals' && config.board !== 'departures' ? 'selected' : ''}>${this.t('editor.boardAuto')}</option>
+            <option value="arrivals" ${config.board === 'arrivals' ? 'selected' : ''}>${this.t('editor.boardArrivals')}</option>
+            <option value="departures" ${config.board === 'departures' ? 'selected' : ''}>${this.t('editor.boardDepartures')}</option>
           </select>
-          <div class="helper">Detected from the sensor. Override only if the airport column is labelled wrong.</div>
+          <div class="helper">${this.t('editor.boardHelper')}</div>
         </div>
 
         <div class="config-row">
-          <label>Visible Fields</label>
+          <label>${this.t('editor.visibleFields')}</label>
           <div class="checkbox-group">
             <div class="checkbox-item">
               <input type="checkbox" id="show_time" ${vf.time !== false ? 'checked' : ''}>
-              <label for="show_time">Time</label>
+              <label for="show_time">${this.t('editor.fieldTime')}</label>
             </div>
             <div class="checkbox-item">
               <input type="checkbox" id="show_flight" ${vf.flight !== false ? 'checked' : ''}>
-              <label for="show_flight">Flight Number</label>
+              <label for="show_flight">${this.t('editor.fieldFlight')}</label>
             </div>
             <div class="checkbox-item">
               <input type="checkbox" id="show_airport" ${vf.airport !== false ? 'checked' : ''}>
-              <label for="show_airport">Airport (From/To)</label>
+              <label for="show_airport">${this.t('editor.fieldAirport')}</label>
             </div>
             <div class="checkbox-item">
               <input type="checkbox" id="show_status" ${vf.status !== false ? 'checked' : ''}>
-              <label for="show_status">Status</label>
+              <label for="show_status">${this.t('editor.fieldStatus')}</label>
             </div>
             <div class="checkbox-item">
               <input type="checkbox" id="show_aircraft" ${vf.aircraft !== false ? 'checked' : ''}>
-              <label for="show_aircraft">Aircraft</label>
+              <label for="show_aircraft">${this.t('editor.fieldAircraft')}</label>
             </div>
           </div>
-          <div class="helper">Select which fields to display</div>
+          <div class="helper">${this.t('editor.visibleFieldsHelper')}</div>
         </div>
       </div>
     `;
@@ -865,7 +969,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     const newConfig = {
       entity: this.getSelect('entity')?.value || '',
       title: this.getInput('title')?.value || '',
-      language: this.getSelect('language')?.value || 'en',
+      language: this.getSelect('language')?.value || '',
       max_flights: parseInt(this.getInput('max_flights')?.value) || 8,
       flip_duration: parseInt(this.getInput('flip_duration')?.value) || 800,
       flip_delay: parseInt(this.getInput('flip_delay')?.value) || 50,
