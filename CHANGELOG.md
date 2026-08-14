@@ -7,6 +7,8 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.3.0-beta.1] - 2026-08-14
+
 ### Hinzugefügt
 - Alle Texte liegen jetzt in `dist/translations/<sprache>.json` und werden
   zur Laufzeit geladen. Das gilt auch für den Konfigurationseditor, der
@@ -115,6 +117,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Ereignisbasierte Updates (keine Polling)
 - Optimierte Render-Performance durch selektive Updates
 
-[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.3.0-beta.1...HEAD
+[0.3.0-beta.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/v0.2.0-beta...0.3.0-beta.1
 [0.2.0]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/GpsM2/flightradar24-splitflap-card/releases/tag/v0.1.0
