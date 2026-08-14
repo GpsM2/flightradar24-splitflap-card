@@ -1,1 +1,4 @@
 node_modules/
+
+# Local dev harness (generated from live data, not shipped)
+.dev/

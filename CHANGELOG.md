@@ -7,6 +7,24 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Entfernt
+- Unterstützung für die Area-Sensoren (`current_in_area`, `entered_area`,
+  `exited_area`, `additional_tracked`). Diese Card ist eine reine
+  Ankunfts-/Abflugtafel und arbeitet nur noch mit
+  `sensor.flightradar24_airport_arrivals` / `_departures`. Die Sensoren der
+  Integration selbst sind davon nicht betroffen und bleiben anderweitig
+  nutzbar.
+- Konfigurationsoption `mode` (`auto`/`airport`/`area`) – ohne zweiten
+  Sensor-Typ gibt es nichts mehr zu unterscheiden.
+- Konfigurationsoptionen `visible_fields.altitude` und `visible_fields.speed`
+  – die Airport-Sensoren liefern diese Werte nicht, die Spalten blieben
+  immer leer.
+
+### Geändert
+- Die Entity-Auswahl im visuellen Editor listet nur noch Sensoren mit
+  `flights`-Attribut, also keine Statistik-Sensoren wie
+  `..._delayed` oder `..._on_time` mehr.
+
 ## [0.2.0] - 2026-02-06
 
 ### Hinzugefügt

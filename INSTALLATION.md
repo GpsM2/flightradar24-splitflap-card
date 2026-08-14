@@ -55,7 +55,7 @@ Falls noch nicht installiert:
 
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
+entity: sensor.flightradar24_airport_arrivals
 ```
 
 5. Speichern
@@ -64,7 +64,7 @@ entity: sensor.flightradar24_current_in_area
 
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
+entity: sensor.flightradar24_airport_arrivals
 title: ANKÜNFTE
 max_flights: 8
 flip_duration: 800
@@ -75,21 +75,20 @@ flip_delay: 50
 
 ### Verfügbare Entities
 
-Teste verschiedene Sensoren:
+Diese Card ist eine Ankunfts-/Abflugtafel und unterstützt die beiden Airport-Sensoren:
 
 ```yaml
-# Flüge in der Nähe
-entity: sensor.flightradar24_current_in_area
+# Ankünfte
+entity: sensor.flightradar24_airport_arrivals
 
-# Neu eingetretene Flüge
-entity: sensor.flightradar24_entered_area
-
-# Kürzlich ausgetretene Flüge
-entity: sensor.flightradar24_exited_area
-
-# Manuell verfolgte Flüge
-entity: sensor.flightradar24_additional_tracked
+# Abflüge
+entity: sensor.flightradar24_airport_departures
 ```
+
+Die Area-Sensoren der Integration (`current_in_area`, `entered_area`, `exited_area`,
+`additional_tracked`) werden von dieser Card nicht unterstützt – sie liefern
+Live-Positionsdaten statt Fahrplandaten. Die Sensoren selbst bleiben unverändert
+nutzbar, nur eben in anderen Karten.
 
 ### Animations-Geschwindigkeit anpassen
 
@@ -132,13 +131,13 @@ max_flights: 15
 type: vertical-stack
 cards:
   - type: custom:flightradar24-splitflap-card
-    entity: sensor.flightradar24_current_in_area
-    title: AKTUELL IN DER NÄHE
+    entity: sensor.flightradar24_airport_arrivals
+    title: ANKÜNFTE
     max_flights: 5
-    
+
   - type: custom:flightradar24-splitflap-card
-    entity: sensor.flightradar24_entered_area
-    title: KÜRZLICH EINGETRETEN
+    entity: sensor.flightradar24_airport_departures
+    title: ABFLÜGE
     max_flights: 3
     flip_duration: 600
 ```
@@ -151,11 +150,11 @@ Zeige die Card nur wenn Flüge vorhanden sind:
 type: conditional
 conditions:
   - condition: numeric_state
-    entity: sensor.flightradar24_current_in_area
+    entity: sensor.flightradar24_airport_arrivals
     above: 0
 card:
   type: custom:flightradar24-splitflap-card
-  entity: sensor.flightradar24_current_in_area
+  entity: sensor.flightradar24_airport_arrivals
   title: ANKÜNFTE
 ```
 
@@ -165,8 +164,8 @@ Perfekt für Tablets oder dedizierte Displays:
 
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
-title: FLUGHAFEN FRANKFURT
+entity: sensor.flightradar24_airport_arrivals
+title: ANKÜNFTE FRANKFURT
 max_flights: 12
 flip_duration: 1000
 flip_delay: 80
@@ -191,13 +190,13 @@ flip_delay: 80
 **Prüfe den Sensor:**
 
 1. **Entwicklerwerkzeuge** → **Zustände**
-2. Suche nach `sensor.flightradar24_current_in_area`
+2. Suche nach `sensor.flightradar24_airport_arrivals`
 3. Prüfe ob `flights` Attribut Daten enthält
 
 **Mögliche Ursachen:**
-- Keine Flüge in der Nähe
+- Aktuell keine Flüge für diesen Flughafen gemeldet
 - FlightRadar24 Integration nicht korrekt konfiguriert
-- Radius zu klein eingestellt
+- Kein Flughafen in der Integration hinterlegt
 
 ### Animation ruckelt
 
@@ -225,7 +224,7 @@ In der FlightRadar24 Integration:
 
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
+entity: sensor.flightradar24_airport_arrivals
 title: ANKÜNFTE
 max_flights: 8
 flip_duration: 800    # Echte Tafeln sind etwa so schnell
@@ -236,7 +235,7 @@ flip_delay: 60        # Schöner Welleneffekt
 
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
+entity: sensor.flightradar24_airport_arrivals
 title: FLÜGE
 max_flights: 5        # Weniger Flüge = besser Performance
 flip_duration: 600    # Schnellere Animation
@@ -247,8 +246,8 @@ flip_delay: 30
 
 ```yaml
 type: custom:flightradar24-splitflap-card
-entity: sensor.flightradar24_current_in_area
-title: FLUGHAFEN MONITOR
+entity: sensor.flightradar24_airport_arrivals
+title: ANKÜNFTE MONITOR
 max_flights: 15
 flip_duration: 1000
 flip_delay: 100
