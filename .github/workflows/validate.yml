@@ -1,0 +1,22 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # HACS validation depends on external state (brands, repo metadata), so it
+    # can start failing without anything in this repo changing.
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hacs/action@main
+        with:
+          category: plugin
