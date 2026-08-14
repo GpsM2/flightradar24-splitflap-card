@@ -14,6 +14,8 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
 
 - Authentische Split-Flap-Animation – jedes Zeichen dreht sich einzeln, nur geänderte Zeichen werden animiert
 - Für die Airport-Sensoren der Integration: Ankünfte und Abflüge eines Flughafens
+- Heller und dunkler Modus, folgt automatisch dem Home-Assistant-Theme
+- Responsives Raster: die Kacheln verkleinern sich, bis die Tafel in die Karte passt
 - Konfigurierbare Animationsgeschwindigkeit, Zeilenanzahl und sichtbare Spalten
 - Mehrsprachige Oberfläche (Deutsch, Englisch, Spanisch, Französisch)
 - Visueller Konfigurationseditor – keine YAML-Kenntnisse nötig
@@ -65,6 +67,7 @@ title: ANKÜNFTE FRANKFURT   # Überschrift, Standard: automatisch anhand der En
 language: de                # en, de, es, fr – ohne Angabe: Sprache von Home Assistant
 max_flights: 8               # Anzahl angezeigter Flüge, Standard: 8
 board: auto                  # auto, arrivals, departures – Standard: auto
+theme: auto                  # auto, dark, light – Standard: auto (folgt Home Assistant)
 flip_duration: 800           # Dauer der Flip-Animation in ms, Standard: 800
 flip_delay: 50                # Verzögerung zwischen Buchstaben in ms, Standard: 50
 visible_fields:               # welche Spalten angezeigt werden

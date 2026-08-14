@@ -74,6 +74,11 @@ export const FALLBACK_TRANSLATIONS = {
     "editor.loading": "Loading…",
     "editor.maxFlights": "Maximum flights",
     "editor.maxFlightsHelper": "Number of rows to display (1-20)",
+    "editor.theme": "Appearance",
+    "editor.themeAuto": "Follow Home Assistant",
+    "editor.themeDark": "Dark",
+    "editor.themeHelper": "Follows the Home Assistant theme unless overridden",
+    "editor.themeLight": "Light",
     "editor.title": "Title",
     "editor.titleHelper": "Leave empty to use the board direction",
     "editor.titlePlaceholder": "Automatic",
@@ -134,6 +139,8 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     this.displayedFlights = [];
     /** @type {Record<string, string>} */
     this._strings = FALLBACK_TRANSLATIONS;
+    /** Pending flip timers, so they can be cancelled on removal. */
+    this._timers = new Set();
   }
 
   /**
@@ -216,6 +223,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       // Home Assistant", which is only knowable once hass arrives.
       language: config.language || '',
       board: config.board || 'auto',
+      theme: config.theme || 'auto',
       visible_fields: visible_fields
     };
 
@@ -226,6 +234,9 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this.applyLanguage();
+    // Cheap enough to redo on every update, and it keeps the board in step
+    // when the dashboard is switched between light and dark.
+    if (this.shadowRoot.querySelector('.frame')) this.applyTheme();
 
     const entity = hass.states[this.config.entity];
 
@@ -379,24 +390,32 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   animateRow(rowIndex, oldData, newData) {
-    const row = this.shadowRoot.querySelector(`[data-row="${rowIndex}"]`);
-    if (!row) return;
-
     const fields = Object.keys(newData);
     fields.forEach((field, fieldIndex) => {
       const oldText = oldData[field] || '';
       const newText = newData[field] || '';
-      
+
       if (oldText !== newText) {
-        this.animateField(row, field, oldText, newText, fieldIndex * 100);
+        this.animateField(rowIndex, field, oldText, newText, fieldIndex * 100);
       }
     });
 
     this.displayedFlights[rowIndex] = newData;
   }
 
-  animateField(row, fieldName, oldText, newText, baseDelay) {
-    const cell = row.querySelector(`[data-field="${fieldName}"]`);
+  /**
+   * Cells are direct children of one grid rather than nested inside a row
+   * element, so a cell is addressed by its row *and* field.
+   *
+   * @param {number} rowIndex
+   * @param {string} fieldName
+   * @param {string} oldText
+   * @param {string} newText
+   * @param {number} baseDelay
+   */
+  animateField(rowIndex, fieldName, oldText, newText, baseDelay) {
+    const cell = this.shadowRoot.querySelector(
+      `[data-row="${rowIndex}"][data-field="${fieldName}"]`);
     if (!cell) return;
 
     const chars = cell.querySelectorAll('.flap-char');
@@ -405,7 +424,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     for (let i = 0; i < maxLen; i++) {
       const oldChar = oldText[i] || ' ';
       const newChar = newText[i] || ' ';
-      
+
       if (oldChar !== newChar && chars[i]) {
         this.flipCharacter(chars[i], oldChar, newChar, baseDelay + i * this.config.flip_delay);
       }
@@ -413,69 +432,28 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   flipCharacter(element, oldChar, newChar, delay) {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       element.classList.add('flipping');
-      
-      setTimeout(() => {
+
+      const inner = setTimeout(() => {
         element.textContent = newChar;
         element.classList.remove('flipping');
+        this._timers.delete(inner);
       }, this.config.flip_duration / 2);
-      
+      this._timers.add(inner);
+      this._timers.delete(timer);
     }, delay);
+    this._timers.add(timer);
   }
 
-  renderFlightBoard() {
-    const board = this.shadowRoot.querySelector('.flight-board');
-    if (!board) return;
-
-    board.innerHTML = '';
-    
-    if (this.displayedFlights.length === 0) {
-      const noFlights = document.createElement('div');
-      noFlights.className = 'no-flights';
-      noFlights.textContent = this.t('noFlights');
-      board.appendChild(noFlights);
-      return;
-    }
-    
-    this.displayedFlights.forEach((flight, index) => {
-      const row = this.createFlightRow(flight, index);
-      board.appendChild(row);
-    });
+  /** Pending flips would otherwise fire against a detached DOM. */
+  clearTimers() {
+    for (const timer of this._timers) clearTimeout(timer);
+    this._timers.clear();
   }
 
-  createFlightRow(flight, index) {
-    const row = document.createElement('div');
-    row.className = 'flight-row';
-    row.setAttribute('data-row', index);
-
-    const fieldConfig = [];
-    const vf = this.config.visible_fields || {};
-    
-    if (vf.time !== false) fieldConfig.push({ name: 'time', value: flight.time, width: '60px' });
-    if (vf.flight !== false) fieldConfig.push({ name: 'flight', value: flight.flight, width: '100px' });
-    if (vf.airport !== false) fieldConfig.push({ name: 'airport', value: flight.airport, width: '180px' });
-    if (vf.status !== false) fieldConfig.push({ name: 'status', value: flight.status, width: '130px' });
-    if (vf.aircraft !== false) fieldConfig.push({ name: 'aircraft', value: flight.aircraft, width: '140px' });
-
-    fieldConfig.forEach(field => {
-      const cell = document.createElement('div');
-      cell.className = 'flight-cell';
-      cell.setAttribute('data-field', field.name);
-      cell.style.width = field.width;
-      cell.style.flexShrink = '0';
-      
-      for (const char of field.value) {
-        const charSpan = document.createElement('span');
-        charSpan.className = 'flap-char';
-        charSpan.textContent = char;
-        cell.appendChild(charSpan);
-      }
-      
-      row.appendChild(cell);
-    });
-
-    return row;
+  disconnectedCallback() {
+    this.clearTimers();
   }
 
   getTitle() {
@@ -485,121 +463,253 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     return this.t(this.getDirection() === 'departures' ? 'departures' : 'arrivals');
   }
 
-  render() {
+  /** Column order and the character width each field is padded to. */
+  getColumns() {
     const vf = this.config.visible_fields || {};
-    const headerCells = [];
     const departures = this.getDirection() === 'departures';
+    const columns = [];
 
-    // Remembered so `set hass` can tell when the direction resolves or
-    // changes and the header has to be rebuilt.
-    this._renderedDirection = departures ? 'departures' : 'arrivals';
+    if (vf.time !== false) columns.push({ name: 'time', label: 'time', width: 5 });
+    if (vf.flight !== false) columns.push({ name: 'flight', label: 'flight', width: 8 });
+    if (vf.airport !== false) columns.push({ name: 'airport', label: departures ? 'to' : 'from', width: 15 });
+    if (vf.status !== false) columns.push({ name: 'status', label: 'status', width: 12 });
+    if (vf.aircraft !== false) columns.push({ name: 'aircraft', label: 'aircraft', width: 12 });
+
+    return columns;
+  }
+
+  renderFlightBoard() {
+    const grid = this.shadowRoot.querySelector('.grid');
+    const empty = /** @type {HTMLElement | null} */ (this.shadowRoot.querySelector('.empty'));
+    if (!grid) return;
+
+    // Header cells live in the same grid as the data, so the two can never
+    // drift apart: there is one set of column tracks and one scroll container.
+    grid.querySelectorAll('.cell').forEach(cell => cell.remove());
+
+    if (this.displayedFlights.length === 0) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+
+    const columns = this.getColumns();
+    const fragment = document.createDocumentFragment();
+
+    this.displayedFlights.forEach((flight, rowIndex) => {
+      columns.forEach(column => {
+        fragment.appendChild(this.createCell(flight, column, rowIndex));
+      });
+    });
+
+    grid.appendChild(fragment);
+  }
+
+  /**
+   * @param {Record<string, string>} flight
+   * @param {{name: string, width: number}} column
+   * @param {number} rowIndex
+   */
+  createCell(flight, column, rowIndex) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.row = String(rowIndex);
+    cell.dataset.field = column.name;
+    if (rowIndex % 2 === 1) cell.classList.add('odd');
+
+    // Padded to a fixed character count, so every position is a tile and the
+    // board keeps the mechanical grid look even where a value is short.
+    const text = (flight[column.name] || '').padEnd(column.width, ' ');
+
+    for (const char of text) {
+      const tile = document.createElement('span');
+      tile.className = 'flap-char';
+      if (char === ' ') tile.classList.add('blank');
+      tile.textContent = char;
+      cell.appendChild(tile);
+    }
+
+    return cell;
+  }
+
+  render() {
+    const columns = this.getColumns();
+
+    // Remembered so `set hass` can tell when the chrome actually has to be
+    // rebuilt. Without this every state update would re-render the whole
+    // board, which also means no row would ever animate.
+    this._renderedDirection = this.getDirection();
     this._renderedWithHass = !!this._hass;
 
-    if (vf.time !== false) headerCells.push({ text: this.t('time'), width: '60px' });
-    if (vf.flight !== false) headerCells.push({ text: this.t('flight'), width: '100px' });
-    if (vf.airport !== false) headerCells.push({ text: this.t(departures ? 'to' : 'from'), width: '180px' });
-    if (vf.status !== false) headerCells.push({ text: this.t('status'), width: '130px' });
-    if (vf.aircraft !== false) headerCells.push({ text: this.t('aircraft'), width: '140px' });
+    // Tile size is derived from how many characters actually have to fit, so
+    // the board shrinks to the card instead of overflowing at a fixed size.
+    // Below the floor it scrolls — at some width there is no honest way to
+    // show 50-odd characters per row.
+    const totalChars = columns.reduce((sum, column) => sum + column.width, 0);
+    const chrome = columns.length * 20 + totalChars * 2;
+    const tileWidth =
+      `clamp(8px, calc((100cqw - ${chrome}px) / ${totalChars}), 14px)`;
 
     this.shadowRoot.innerHTML = `
       <style>
+        /* Dark is the default: an airport board is a dark object.
+           Light overrides only the tokens, never the rules below. */
         :host {
           display: block;
-          padding: 16px;
           container-type: inline-size;
+
+          --fr24-frame-bg: #101216;
+          --fr24-board-bg: #17191e;
+          --fr24-row-bg: #1c1f25;
+          --fr24-row-alt-bg: #191c21;
+          --fr24-tile-top: #33373f;
+          --fr24-tile-bottom: #23262c;
+          --fr24-tile-fg: #f4f5f7;
+          --fr24-blank-top: #212429;
+          --fr24-blank-bottom: #1a1d22;
+          --fr24-accent: #ffa500;
+          --fr24-muted: #8b929e;
+          --fr24-divider: rgba(255, 255, 255, 0.07);
+          --fr24-seam: rgba(0, 0, 0, 0.55);
+          --fr24-highlight: rgba(255, 255, 255, 0.10);
+
+          --fr24-tile-w: ${tileWidth};
+          --fr24-tile-h: calc(var(--fr24-tile-w) * 2.15);
+          --fr24-tile-font: calc(var(--fr24-tile-w) * 1.25);
         }
 
-        .card-header {
-          background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
-          color: #ffa500;
-          padding: 16px;
+        :host([data-theme="light"]) {
+          --fr24-frame-bg: #dfe2e8;
+          --fr24-board-bg: #eceef2;
+          --fr24-row-bg: #f6f7f9;
+          --fr24-row-alt-bg: #eef0f4;
+          --fr24-tile-top: #ffffff;
+          --fr24-tile-bottom: #dcdfe6;
+          --fr24-tile-fg: #14161a;
+          /* Only just distinguishable from a filled tile: on a light board a
+             stronger contrast makes trailing blanks read as a progress bar. */
+          --fr24-blank-top: #f2f4f7;
+          --fr24-blank-bottom: #e6e9ee;
+          --fr24-accent: #b45309;
+          --fr24-muted: #5b6472;
+          --fr24-divider: rgba(0, 0, 0, 0.08);
+          --fr24-seam: rgba(0, 0, 0, 0.18);
+          --fr24-highlight: rgba(255, 255, 255, 0.75);
+        }
+
+        .frame {
+          background: var(--fr24-frame-bg);
+          border-radius: 12px;
+          overflow: hidden;
+          font-family: 'Courier New', ui-monospace, monospace;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+        }
+
+        /* The accent rail both reference boards carry along the board edge. */
+        .rail {
+          height: 4px;
+          background: linear-gradient(
+            90deg,
+            var(--fr24-accent) 0%,
+            var(--fr24-accent) 45%,
+            color-mix(in srgb, var(--fr24-accent) 45%, transparent) 100%
+          );
+        }
+
+        .title {
+          padding: 14px 16px;
           text-align: center;
-          font-size: clamp(18px, 4cqi, 24px);
-          font-weight: bold;
-          letter-spacing: 4px;
-          border-radius: 8px 8px 0 0;
-          font-family: 'Courier New', monospace;
-          box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3);
+          color: var(--fr24-accent);
+          font-size: clamp(16px, 3.6cqi, 22px);
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
         }
 
-        .header-row {
-          display: flex;
-          background: #2a2a2a;
-          padding: 8px 12px;
-          color: #ffa500;
-          font-size: clamp(10px, 2cqi, 12px);
-          font-weight: bold;
-          letter-spacing: 2px;
-          font-family: 'Courier New', monospace;
-          border-bottom: 2px solid #444;
+        /* One scroll container around header *and* rows. Column tracks are
+           defined once on .grid, so labels cannot drift from their data. */
+        .scroller {
           overflow-x: auto;
+          background: var(--fr24-board-bg);
+          scrollbar-width: thin;
         }
 
-        .header-cell {
-          flex-shrink: 0;
-          padding: 0 4px;
-        }
-
-        .flight-board {
-          background: #1a1a1a;
-          border-radius: 0 0 8px 8px;
-          overflow-x: auto;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-          min-height: 100px;
-        }
-
-        .flight-row {
-          display: flex;
-          padding: 4px 12px;
-          border-bottom: 1px solid #333;
-          min-height: 48px;
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(${columns.length}, max-content);
+          min-width: max-content;
           align-items: center;
-          background: linear-gradient(180deg, #222 0%, #1a1a1a 100%);
         }
 
-        .flight-row:last-child {
-          border-bottom: none;
+        .colhead {
+          position: sticky;
+          top: 0;
+          padding: 9px 10px;
+          color: var(--fr24-muted);
+          background: var(--fr24-frame-bg);
+          border-bottom: 1px solid var(--fr24-divider);
+          font-size: clamp(9px, 1.7cqi, 11px);
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          white-space: nowrap;
         }
 
-        .flight-row:hover {
-          background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
-        }
-
-        .flight-cell {
+        .cell {
           display: flex;
           gap: 2px;
-          padding: 0 4px;
+          padding: 5px 10px;
+          background: var(--fr24-row-bg);
+          border-bottom: 1px solid var(--fr24-divider);
         }
+
+        .cell.odd { background: var(--fr24-row-alt-bg); }
 
         .flap-char {
-          display: inline-block;
-          width: clamp(10px, 2.5cqi, 12px);
-          height: 32px;
-          line-height: 32px;
+          width: var(--fr24-tile-w);
+          height: var(--fr24-tile-h);
+          line-height: var(--fr24-tile-h);
+          flex: 0 0 auto;
           text-align: center;
-          background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 48%, #0a0a0a 52%, #1a1a1a 100%);
-          color: #e8e8e8;
-          font-family: 'Courier New', monospace;
-          font-size: clamp(14px, 3.5cqi, 18px);
-          font-weight: bold;
+          font-size: var(--fr24-tile-font);
+          font-weight: 700;
+          color: var(--fr24-tile-fg);
+          background: linear-gradient(
+            180deg,
+            var(--fr24-tile-top) 0%,
+            var(--fr24-tile-bottom) 49%,
+            var(--fr24-tile-top) 51%,
+            var(--fr24-tile-bottom) 100%
+          );
           border-radius: 2px;
-          box-shadow: 
-            inset 0 1px 0 rgba(255,255,255,0.1),
-            inset 0 -1px 0 rgba(0,0,0,0.5),
-            0 1px 2px rgba(0,0,0,0.3);
+          box-shadow:
+            inset 0 1px 0 var(--fr24-highlight),
+            0 1px 1px rgba(0, 0, 0, 0.25);
           position: relative;
-          transition: transform 0.1s ease;
+          white-space: pre;
         }
 
-        .flap-char:before {
+        /* Unused positions stay part of the board instead of leaving a hole. */
+        .flap-char.blank {
+          background: linear-gradient(
+            180deg,
+            var(--fr24-blank-top) 0%,
+            var(--fr24-blank-bottom) 49%,
+            var(--fr24-blank-top) 51%,
+            var(--fr24-blank-bottom) 100%
+          );
+          box-shadow: inset 0 1px 0 var(--fr24-highlight);
+        }
+
+        /* The split seam every flap has across its middle. */
+        .flap-char::after {
           content: '';
           position: absolute;
-          top: 50%;
           left: 0;
           right: 0;
+          top: 50%;
           height: 1px;
-          background: rgba(0,0,0,0.6);
-          box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+          background: var(--fr24-seam);
         }
 
         .flap-char.flipping {
@@ -607,56 +717,68 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
         }
 
         @keyframes flip {
-          0% {
-            transform: scaleY(1);
-          }
-          25% {
-            transform: scaleY(0.8);
-            filter: brightness(1.2);
-          }
-          50% {
-            transform: scaleY(0.1);
-            filter: brightness(1.5);
-          }
-          75% {
-            transform: scaleY(0.8);
-            filter: brightness(1.2);
-          }
-          100% {
-            transform: scaleY(1);
-          }
+          0%   { transform: scaleY(1); }
+          25%  { transform: scaleY(0.75); filter: brightness(1.25); }
+          50%  { transform: scaleY(0.06); filter: brightness(1.5); }
+          75%  { transform: scaleY(0.75); filter: brightness(1.25); }
+          100% { transform: scaleY(1); }
         }
 
-        .no-flights {
-          padding: 40px;
+        @media (prefers-reduced-motion: reduce) {
+          .flap-char.flipping { animation: none; }
+        }
+
+        .empty {
+          padding: 32px 16px;
           text-align: center;
-          color: #666;
-          font-family: 'Courier New', monospace;
-        }
-
-        @container (max-width: 600px) {
-          .header-row {
-            font-size: 10px;
-          }
-          .flap-char {
-            width: 10px;
-            font-size: 14px;
-            height: 28px;
-            line-height: 28px;
-          }
+          color: var(--fr24-muted);
+          background: var(--fr24-board-bg);
+          letter-spacing: 0.08em;
         }
       </style>
 
-      <div class="card-header">${this.getTitle()}</div>
-      <div class="header-row">
-        ${headerCells.map(cell => `<div class="header-cell" style="width: ${cell.width}">${cell.text}</div>`).join('')}
+      <div class="frame">
+        <div class="rail"></div>
+        <div class="title">${this.escape(this.getTitle())}</div>
+        <div class="scroller">
+          <div class="grid">
+            ${columns.map(column =>
+              `<div class="colhead">${this.escape(this.t(column.label))}</div>`).join('')}
+          </div>
+        </div>
+        <div class="empty" hidden>${this.escape(this.t('noFlights'))}</div>
+        <div class="rail"></div>
       </div>
-      <div class="flight-board"></div>
     `;
 
-    if (this.displayedFlights.length > 0) {
-      this.renderFlightBoard();
-    }
+    this.applyTheme();
+    this.renderFlightBoard();
+  }
+
+  /**
+   * The title is user-supplied config and entity data, so it must not be
+   * able to inject markup into the template above.
+   *
+   * @param {string} value
+   * @returns {string}
+   */
+  escape(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[char]));
+  }
+
+  /**
+   * `auto` follows Home Assistant's own dark-mode flag rather than the OS
+   * setting, so the card matches the dashboard around it.
+   */
+  applyTheme() {
+    const configured = this.config.theme;
+    const dark = configured === 'dark' ? true
+      : configured === 'light' ? false
+      : this._hass?.themes?.darkMode !== false;
+
+    this.setAttribute('data-theme', dark ? 'dark' : 'light');
   }
 
   getCardSize() {
@@ -678,6 +800,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       entity: '',
       max_flights: 8,
       board: 'auto',
+      theme: 'auto',
       visible_fields: {
         time: true,
         flight: true,
@@ -742,6 +865,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       flip_duration: 800,
       flip_delay: 50,
       board: 'auto',
+      theme: 'auto',
       visible_fields: {
         time: true,
         flight: true,
@@ -920,6 +1044,16 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
         </div>
 
         <div class="config-row">
+          <label for="theme">${this.t('editor.theme')}</label>
+          <select id="theme">
+            <option value="auto" ${config.theme !== 'dark' && config.theme !== 'light' ? 'selected' : ''}>${this.t('editor.themeAuto')}</option>
+            <option value="dark" ${config.theme === 'dark' ? 'selected' : ''}>${this.t('editor.themeDark')}</option>
+            <option value="light" ${config.theme === 'light' ? 'selected' : ''}>${this.t('editor.themeLight')}</option>
+          </select>
+          <div class="helper">${this.t('editor.themeHelper')}</div>
+        </div>
+
+        <div class="config-row">
           <label>${this.t('editor.visibleFields')}</label>
           <div class="checkbox-group">
             <div class="checkbox-item">
@@ -956,6 +1090,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     this.shadowRoot.getElementById('flip_duration')?.addEventListener('input', () => this.valueChanged());
     this.shadowRoot.getElementById('flip_delay')?.addEventListener('input', () => this.valueChanged());
     this.shadowRoot.getElementById('board')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('theme')?.addEventListener('change', () => this.valueChanged());
 
     this.shadowRoot.getElementById('show_time')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_flight')?.addEventListener('change', () => this.valueChanged());
@@ -989,6 +1124,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       flip_duration: parseInt(this.getInput('flip_duration')?.value) || 800,
       flip_delay: parseInt(this.getInput('flip_delay')?.value) || 50,
       board: this.getSelect('board')?.value || 'auto',
+      theme: this.getSelect('theme')?.value || 'auto',
       visible_fields: {
         time: this.getInput('show_time')?.checked !== false,
         flight: this.getInput('show_flight')?.checked !== false,
