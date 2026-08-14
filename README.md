@@ -14,6 +14,7 @@ Eine Custom Lovelace Card für Home Assistant, die Flugdaten der [FlightRadar24-
 
 - Authentische Split-Flap-Animation – jedes Zeichen dreht sich einzeln, nur geänderte Zeichen werden animiert
 - Für die Airport-Sensoren der Integration: Ankünfte und Abflüge eines Flughafens
+- Verspätungsanzeige: geplante und erwartete Zeit nebeneinander, farblich abgesetzt
 - Heller und dunkler Modus, folgt automatisch dem Home-Assistant-Theme
 - Responsives Raster: die Kacheln verkleinern sich, bis die Tafel in die Karte passt
 - Konfigurierbare Animationsgeschwindigkeit, Zeilenanzahl und sichtbare Spalten
@@ -72,6 +73,7 @@ flip_duration: 800           # Dauer der Flip-Animation in ms, Standard: 800
 flip_delay: 50                # Verzögerung zwischen Buchstaben in ms, Standard: 50
 visible_fields:               # welche Spalten angezeigt werden
   time: true
+  expected: true
   flight: true
   airport: true
   status: true
@@ -155,6 +157,30 @@ card:
 - `max_flights` reduzieren oder das Scan-Interval der FlightRadar24-Integration auf mindestens 60 Sekunden erhöhen
 
 Weitere Details in [INSTALLATION.md](INSTALLATION.md).
+
+## Verspätungen
+
+Neben der geplanten Zeit steht die erwartete – aber nur, wenn sie abweicht.
+Eine gefüllte Zelle in dieser Spalte heißt also immer: dieser Flug läuft
+nicht nach Plan.
+
+Die Statusspalte fasst zusammen, was das bedeutet:
+
+| Anzeige | Bedeutung |
+|---|---|
+| `PÜNKTLICH` | weniger als 5 Minuten Abweichung |
+| `+8 MIN` | 8 Minuten später als geplant |
+| `-12 MIN` | 12 Minuten früher als geplant |
+| `PLANMÄSSIG` | noch keine Schätzung verfügbar |
+| `GELANDET` / `ABGEFLOGEN` | bereits erfolgt |
+| `ANNULLIERT` / `UMGELEITET` | Flug findet nicht wie geplant statt |
+
+Verspätungen und Annullierungen sind rot, pünktliche Flüge grün. Die Farbe
+ergänzt den Text nur – die Aussage steht immer auch als Wort da.
+
+Ein Hinweis zur Breite: Mit allen Spalten braucht die Tafel etwa 820 px.
+Auf schmaleren Karten lässt sie sich horizontal scrollen; wer das vermeiden
+will, blendet über `visible_fields` nicht benötigte Spalten aus.
 
 ## Sprachen
 

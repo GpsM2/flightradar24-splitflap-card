@@ -30,6 +30,14 @@ const STATUS_KEYS = {
   cancelled: 'canceled'
 };
 
+/**
+ * Minutes of deviation before a flight stops counting as on time. Airlines
+ * conventionally treat under 15 minutes as punctual; the board is stricter
+ * because a viewer is deciding whether to leave for the airport now.
+ */
+const DELAY_THRESHOLD_MINUTES = 5;
+const EARLY_THRESHOLD_MINUTES = 5;
+
 /** Languages shipped in `translations/`. */
 const SUPPORTED_LANGUAGES = ['en', 'de', 'es', 'fr'];
 
@@ -46,11 +54,13 @@ export const FALLBACK_TRANSLATIONS = {
     "aircraft": "AIRCRAFT",
     "arrivals": "ARRIVALS",
     "canceled": "CANCELLED",
+    "delayMinutes": "+{minutes} MIN",
     "delayed": "DELAYED",
     "departed": "DEPARTED",
     "departures": "DEPARTURES",
     "diverted": "DIVERTED",
     "early": "EARLY",
+    "earlyMinutes": "-{minutes} MIN",
     "editor.board": "Board direction",
     "editor.boardArrivals": "Arrivals",
     "editor.boardAuto": "Auto-detect",
@@ -61,6 +71,7 @@ export const FALLBACK_TRANSLATIONS = {
     "editor.entityPlaceholder": "Select a sensor…",
     "editor.fieldAircraft": "Aircraft",
     "editor.fieldAirport": "Airport (from/to)",
+    "editor.fieldExpected": "Expected time",
     "editor.fieldFlight": "Flight number",
     "editor.fieldStatus": "Status",
     "editor.fieldTime": "Time",
@@ -189,6 +200,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     // Ensure visible_fields has proper defaults
     const defaultVisibleFields = {
       time: true,
+      expected: true,
       flight: true,
       airport: true,
       status: true,
@@ -334,8 +346,14 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       ? flight.time_scheduled_departure
       : flight.time_scheduled_arrival;
     const scheduled = scheduledTs ? new Date(scheduledTs * 1000) : null;
+    const cancelled = /^cancell?ed$/.test(String(flight.status || '').toLowerCase());
 
-    if (vf.time !== false) fields.time = scheduled ? this.formatTime(scheduled) : '--:--';
+    // A cancelled flight has no time worth reading; real boards blank it out
+    // rather than leave a time that will never happen.
+    if (vf.time !== false) {
+      fields.time = cancelled ? '--:--' : (scheduled ? this.formatTime(scheduled) : '--:--');
+    }
+    if (vf.expected !== false) fields.expected = this.formatExpected(flight, cancelled);
     if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
     if (vf.airport !== false) fields.airport = (flight.airport_city || flight.airport_code_iata || '').substring(0, 15).padEnd(15, ' ');
     if (vf.status !== false) fields.status = this.formatStatus(flight).substring(0, 12).padEnd(12, ' ');
@@ -355,25 +373,101 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   /**
-   * The upstream `status_text` is an English sentence whose shape varies by
-   * state and direction ("Estimated 07:37" vs "Estimated dep 07:40"), so it
-   * can be neither translated nor safely shortened — cutting it to the
-   * column width used to strip exactly the part that carried the meaning,
-   * leaving "Estimated de".
+   * The time the flight is actually expected at, once that is known and
+   * differs from the schedule. Left blank otherwise, so a filled cell in
+   * this column always means "this is not running to plan".
    *
-   * The `status` enum next to it is stable and language-independent, so it
-   * is what the board shows. `status_text` is only used for states not in
-   * the mapping, and then cut at a word boundary rather than mid-word.
+   * @param {Record<string, any>} flight
+   * @param {boolean} cancelled
+   * @returns {string}
+   */
+  formatExpected(flight, cancelled) {
+    const blank = ' '.repeat(5);
+    if (cancelled) return blank;
+
+    const departures = this.getDirection() === 'departures';
+    const actual = departures ? flight.time_real_departure : flight.time_real_arrival;
+    const estimated = departures ? flight.time_estimated_departure : flight.time_estimated_arrival;
+
+    const reference = actual || estimated;
+    if (!reference) return blank;
+
+    const minutes = this.getDelayMinutes(flight);
+    if (minutes !== null && Math.abs(minutes) < DELAY_THRESHOLD_MINUTES) return blank;
+
+    return this.formatTime(new Date(reference * 1000));
+  }
+
+  /**
+   * Minutes between the scheduled time and the best available replacement
+   * for it — the actual time once it exists, the estimate before that.
+   * Positive is late, negative is early, null when there is nothing to
+   * compare against.
    *
+   * @param {Record<string, any>} flight
+   * @returns {number | null}
+   */
+  getDelayMinutes(flight) {
+    const departures = this.getDirection() === 'departures';
+    const scheduled = departures ? flight.time_scheduled_departure : flight.time_scheduled_arrival;
+    const actual = departures ? flight.time_real_departure : flight.time_real_arrival;
+    const estimated = departures ? flight.time_estimated_departure : flight.time_estimated_arrival;
+
+    const reference = actual || estimated;
+    if (!scheduled || !reference) return null;
+
+    return Math.round((reference - scheduled) / 60);
+  }
+
+  /**
+   * The board's own view of a flight, combining the upstream `status` enum
+   * with the computed delay. The enum alone can't say "eight minutes late",
+   * and the delay alone can't say "cancelled".
+   *
+   * `tone` drives colour only, so the meaning survives for anyone who can't
+   * distinguish the colours.
+   *
+   * @param {Record<string, any>} flight
+   * @returns {{text: string, tone: string}}
+   */
+  getFlightState(flight) {
+    const status = String(flight.status || '').toLowerCase();
+
+    if (status === 'canceled' || status === 'cancelled') {
+      return { text: this.t('canceled'), tone: 'alert' };
+    }
+    if (status === 'diverted') return { text: this.t('diverted'), tone: 'alert' };
+    if (status === 'landed') return { text: this.t('landed'), tone: 'done' };
+    if (status === 'departed') return { text: this.t('departed'), tone: 'done' };
+
+    const minutes = this.getDelayMinutes(flight);
+    if (minutes !== null) {
+      if (minutes >= DELAY_THRESHOLD_MINUTES) {
+        return { text: this.t('delayMinutes', { minutes }), tone: 'alert' };
+      }
+      if (minutes <= -EARLY_THRESHOLD_MINUTES) {
+        return { text: this.t('earlyMinutes', { minutes: Math.abs(minutes) }), tone: 'ok' };
+      }
+      return { text: this.t('ontime'), tone: 'ok' };
+    }
+
+    // No time to compare against yet: report the raw state instead of
+    // implying punctuality nobody has confirmed.
+    if (status === 'delayed') return { text: this.t('delayed'), tone: 'alert' };
+    if (STATUS_KEYS[status]) return { text: this.t(STATUS_KEYS[status]), tone: 'neutral' };
+
+    if (flight.status_text) {
+      return { text: this.truncateAtWord(flight.status_text, 12), tone: 'neutral' };
+    }
+    return { text: this.t('scheduled'), tone: 'neutral' };
+  }
+
+  /**
    * @param {Record<string, any>} flight
    * @returns {string}
    */
   formatStatus(flight) {
-    const key = STATUS_KEYS[String(flight.status || '').toLowerCase()];
-    if (key) return this.t(key);
-
-    if (flight.status_text) return this.truncateAtWord(flight.status_text, 12);
-    return this.t('expected');
+    return this.getFlightState(flight).text;
   }
 
   /**
@@ -399,6 +493,12 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
         this.animateField(rowIndex, field, oldText, newText, fieldIndex * 100);
       }
     });
+
+    // The tiles animate their own characters, but the status colour is a
+    // class on the cell and would otherwise keep the previous state's tone.
+    const statusCell = /** @type {HTMLElement | null} */ (
+      this.shadowRoot.querySelector(`[data-row="${rowIndex}"][data-field="status"]`));
+    if (statusCell) this.applyTone(statusCell, { name: 'status' }, this.flights[rowIndex]);
 
     this.displayedFlights[rowIndex] = newData;
   }
@@ -450,10 +550,17 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   clearTimers() {
     for (const timer of this._timers) clearTimeout(timer);
     this._timers.clear();
+    clearInterval(this._clockTimer);
   }
 
   disconnectedCallback() {
     this.clearTimers();
+  }
+
+  connectedCallback() {
+    // Re-entering the DOM after a dashboard tab switch: the clock would
+    // otherwise stay frozen at the time it was removed.
+    if (this.shadowRoot.querySelector('.clock')) this.startClock();
   }
 
   getTitle() {
@@ -470,6 +577,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     const columns = [];
 
     if (vf.time !== false) columns.push({ name: 'time', label: 'time', width: 5 });
+    if (vf.expected !== false) columns.push({ name: 'expected', label: 'expected', width: 5 });
     if (vf.flight !== false) columns.push({ name: 'flight', label: 'flight', width: 8 });
     if (vf.airport !== false) columns.push({ name: 'airport', label: departures ? 'to' : 'from', width: 15 });
     if (vf.status !== false) columns.push({ name: 'status', label: 'status', width: 12 });
@@ -521,15 +629,39 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     // board keeps the mechanical grid look even where a value is short.
     const text = (flight[column.name] || '').padEnd(column.width, ' ');
 
-    for (const char of text) {
+    // The airline prefix of a flight number is picked out, the way boards
+    // separate carrier from number.
+    const source = this.flights[rowIndex];
+    const prefix = column.name === 'flight' && source?.airline_iata
+      ? String(source.airline_iata).length
+      : 0;
+
+    text.split('').forEach((char, index) => {
       const tile = document.createElement('span');
       tile.className = 'flap-char';
       if (char === ' ') tile.classList.add('blank');
+      if (index < prefix) tile.classList.add('carrier');
       tile.textContent = char;
       cell.appendChild(tile);
-    }
+    });
 
+    this.applyTone(cell, column, source);
     return cell;
+  }
+
+  /**
+   * Colour is applied to the cell rather than baked into the text, so an
+   * animated update can refresh it without rebuilding the row.
+   *
+   * @param {HTMLElement} cell
+   * @param {{name: string}} column
+   * @param {Record<string, any> | undefined} flight
+   */
+  applyTone(cell, column, flight) {
+    if (column.name !== 'status' || !flight) return;
+
+    cell.classList.remove('tone-alert', 'tone-ok', 'tone-done', 'tone-neutral');
+    cell.classList.add(`tone-${this.getFlightState(flight).tone}`);
   }
 
   render() {
@@ -569,6 +701,9 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-blank-bottom: #1a1d22;
           --fr24-accent: #ffa500;
           --fr24-muted: #8b929e;
+          --fr24-tone-alert: #ff6b5e;
+          --fr24-tone-ok: #58c98a;
+          --fr24-tone-done: #8b929e;
           --fr24-divider: rgba(255, 255, 255, 0.07);
           --fr24-seam: rgba(0, 0, 0, 0.55);
           --fr24-highlight: rgba(255, 255, 255, 0.10);
@@ -592,6 +727,10 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-blank-bottom: #e6e9ee;
           --fr24-accent: #b45309;
           --fr24-muted: #5b6472;
+          /* Darkened against the light tiles so the contrast still carries. */
+          --fr24-tone-alert: #b3261e;
+          --fr24-tone-ok: #146c43;
+          --fr24-tone-done: #5b6472;
           --fr24-divider: rgba(0, 0, 0, 0.08);
           --fr24-seam: rgba(0, 0, 0, 0.18);
           --fr24-highlight: rgba(255, 255, 255, 0.75);
@@ -616,14 +755,36 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           );
         }
 
+        .masthead {
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+        }
+
+        .icon {
+          width: clamp(18px, 3.4cqi, 24px);
+          height: clamp(18px, 3.4cqi, 24px);
+          fill: var(--fr24-accent);
+          flex: 0 0 auto;
+        }
+
         .title {
-          padding: 14px 16px;
           text-align: center;
           color: var(--fr24-accent);
-          font-size: clamp(16px, 3.6cqi, 22px);
+          font-size: clamp(15px, 3.4cqi, 21px);
           font-weight: 700;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.2em;
           text-transform: uppercase;
+        }
+
+        .clock {
+          color: var(--fr24-accent);
+          font-size: clamp(15px, 3.2cqi, 20px);
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          font-variant-numeric: tabular-nums;
         }
 
         /* One scroll container around header *and* rows. Column tracks are
@@ -689,6 +850,14 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           white-space: pre;
         }
 
+        /* Tone marks the state; the word itself still says what it is, so
+           the meaning does not depend on distinguishing the colours. */
+        .cell.tone-alert .flap-char:not(.blank) { color: var(--fr24-tone-alert); }
+        .cell.tone-ok .flap-char:not(.blank) { color: var(--fr24-tone-ok); }
+        .cell.tone-done .flap-char:not(.blank) { color: var(--fr24-tone-done); }
+
+        .flap-char.carrier { color: var(--fr24-accent); }
+
         /* Unused positions stay part of the board instead of leaving a hole. */
         .flap-char.blank {
           background: linear-gradient(
@@ -739,7 +908,11 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
       <div class="frame">
         <div class="rail"></div>
-        <div class="title">${this.escape(this.getTitle())}</div>
+        <div class="masthead">
+          ${this.directionIcon()}
+          <div class="title">${this.escape(this.getTitle())}</div>
+          <div class="clock" aria-hidden="true"></div>
+        </div>
         <div class="scroller">
           <div class="grid">
             ${columns.map(column =>
@@ -753,6 +926,43 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
     this.applyTheme();
     this.renderFlightBoard();
+    this.startClock();
+  }
+
+  /**
+   * Take-off and landing marks, matching the icons the integration gives
+   * the two sensors. Inline because the card ships no icon font and must
+   * not fetch anything to render its own chrome.
+   *
+   * @returns {string}
+   */
+  directionIcon() {
+    const departures = this.getDirection() === 'departures';
+    const path = departures
+      ? 'M2.5 19h19v2h-19v-2zm19.57-9.36a1.5 1.5 0 0 0-1.84-1.06l-5.31 1.42-6.9-6.44-1.93.52 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.48 17.58-4.71a1.5 1.5 0 0 0 1.06-1.84z'
+      : 'M2.5 19h19v2h-19v-2zm16.84-3.15a1.5 1.5 0 0 0 1.84-1.06 1.5 1.5 0 0 0-1.06-1.84l-5.31-1.42-2.76-9.14-1.93-.52v8.28l-4.97-1.33-.93-2.32-1.45-.39v5.17l16.57 4.57z';
+
+    return `<svg class="icon" viewBox="0 0 24 24" role="img" aria-label="${
+      this.escape(this.t(departures ? 'departures' : 'arrivals'))}"><path d="${path}"/></svg>`;
+  }
+
+  /**
+   * A board without a clock leaves the times without a reference point.
+   * Ticks on the minute rather than every second, since nothing on the
+   * board resolves finer than that.
+   */
+  startClock() {
+    clearInterval(this._clockTimer);
+
+    const clock = /** @type {HTMLElement | null} */ (this.shadowRoot.querySelector('.clock'));
+    if (!clock) return;
+
+    const tick = () => {
+      clock.textContent = this.formatTime(new Date());
+    };
+
+    tick();
+    this._clockTimer = setInterval(tick, 15000);
   }
 
   /**
@@ -803,6 +1013,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       theme: 'auto',
       visible_fields: {
         time: true,
+        expected: true,
         flight: true,
         airport: true,
         status: true,
@@ -868,6 +1079,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       theme: 'auto',
       visible_fields: {
         time: true,
+        expected: true,
         flight: true,
         airport: true,
         status: true,
@@ -1061,6 +1273,10 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
               <label for="show_time">${this.t('editor.fieldTime')}</label>
             </div>
             <div class="checkbox-item">
+              <input type="checkbox" id="show_expected" ${vf.expected !== false ? 'checked' : ''}>
+              <label for="show_expected">${this.t('editor.fieldExpected')}</label>
+            </div>
+            <div class="checkbox-item">
               <input type="checkbox" id="show_flight" ${vf.flight !== false ? 'checked' : ''}>
               <label for="show_flight">${this.t('editor.fieldFlight')}</label>
             </div>
@@ -1093,6 +1309,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     this.shadowRoot.getElementById('theme')?.addEventListener('change', () => this.valueChanged());
 
     this.shadowRoot.getElementById('show_time')?.addEventListener('change', () => this.valueChanged());
+    this.shadowRoot.getElementById('show_expected')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_flight')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_airport')?.addEventListener('change', () => this.valueChanged());
     this.shadowRoot.getElementById('show_status')?.addEventListener('change', () => this.valueChanged());
@@ -1127,6 +1344,7 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       theme: this.getSelect('theme')?.value || 'auto',
       visible_fields: {
         time: this.getInput('show_time')?.checked !== false,
+        expected: this.getInput('show_expected')?.checked !== false,
         flight: this.getInput('show_flight')?.checked !== false,
         airport: this.getInput('show_airport')?.checked !== false,
         status: this.getInput('show_status')?.checked !== false,
