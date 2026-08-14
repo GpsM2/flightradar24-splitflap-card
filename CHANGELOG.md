@@ -8,6 +8,23 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Geändert
+- Die Tafel sieht jetzt wie ein einzelnes physisches Objekt aus: beschriftete
+  und leere Klappen sind identisch gestaltet, die Faltlinie läuft durch das
+  Zeichen statt dahinter, und die Klappen sind deutlich weniger hoch – ein
+  Großbuchstabe füllt jetzt rund zwei Drittel der Klappenhöhe statt einem
+  Drittel.
+- Eigene Schriftart: JetBrains Mono Bold, serifenlos, wird aus dem Repository
+  geladen. Es werden keine Schriften von Dritten nachgeladen.
+- Alle Zeichen auf der Tafel erscheinen in Großbuchstaben.
+
+### Hinzugefügt
+- Randstreifen wählbar: Akzentfarbe auslaufend oder durchgehend, Regenbogen
+  oder ganz aus.
+- Eigene Akzentfarbe einstellbar.
+- Zweite Animationsart: Die Klappen können die Zeichen bis zum Ziel
+  durchlaufen, statt direkt umzuschlagen.
+
+### Geändert
 - Deutsche Beschriftung der Tafeln auf Einzahl umgestellt: `ANKUNFT` und
   `ABFLUG` statt `ANKÜNFTE` und `ABFLÜGE`.
 - Dokumentation auf die Einrichtung über die Oberfläche umgestellt. Die
