@@ -1007,58 +1007,41 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
   }
 
   /**
-   * `getCardSize()`/`getLayoutOptions()` are how a card tells Home Assistant
-   * how tall it actually is, so Masonry/Sections can size the space around
-   * it instead of leaving a gap or clipping it. Both used to return fixed
-   * numbers regardless of `max_flights`, `title`, or how many
-   * `visible_fields` are shown — this estimates instead: masthead + column
-   * header (2 rows) plus one row per flight, converted from this card's own
-   * ~36px row height to HA's ~50px size unit.
+   * Masonry view only — it has no equivalent of the grid's `rows: "auto"`,
+   * so this one still has to estimate: masthead + column header (2 rows)
+   * plus one row per flight, converted from this card's own ~36px row
+   * height to the 50px unit `getCardSize` is defined in.
    *
-   * Approximate by nature — HA's own docs call this a "good faith
-   * estimate" — and not verified against a live HA frontend, only against
-   * the numbers this card itself renders at. Static so both the instance
-   * method below and its config-less fallback can share one formula
-   * instead of the two drifting apart.
+   * Approximate by nature; HA's own docs call it a good-faith estimate.
    *
-   * @param {number} maxFlights
    * @returns {number}
    */
-  static estimateRowUnits(maxFlights) {
-    return Math.max(1, Math.ceil(((2 + maxFlights) * 36) / 50));
-  }
-
   getCardSize() {
-    return FlightRadar24SplitFlapCard.estimateRowUnits(this.config?.max_flights || 8);
+    const rows = 2 + (this.config?.max_flights || 8);
+    return Math.max(1, Math.ceil((rows * 36) / 50));
   }
 
   /**
-   * Instance method: Home Assistant prefers this over the static one below
-   * once the card is actually configured, which is what makes a dynamic
-   * (config-dependent) result possible at all — the static version has no
-   * instance to read `max_flights` from.
+   * Sections view. `rows: "auto"` makes Home Assistant measure what the
+   * card actually renders instead of trusting arithmetic — the height
+   * depends on `max_flights`, the masthead and the column header, and a
+   * grid row (56px + 8px gap) is a different unit from `getCardSize`'s
+   * 50px, so an estimate here would be wrong twice over.
    *
-   * @returns {Record<string, number>}
+   * `getLayoutOptions` is deliberately not implemented alongside this:
+   * it is deprecated in Home Assistant, and this card already requires
+   * 2026.2.0, well past the point where `getGridOptions` exists.
+   *
+   * @returns {{rows: string, columns: string, min_columns: number}}
    */
-  getLayoutOptions() {
+  getGridOptions() {
     return {
-      ...FlightRadar24SplitFlapCard.getLayoutOptions(),
-      grid_rows: FlightRadar24SplitFlapCard.estimateRowUnits(this.config?.max_flights || 8)
-    };
-  }
-
-  /**
-   * Static fallback: what the card picker shows before any configuration
-   * exists, so there's nothing dynamic to base it on yet — `getStubConfig`'s
-   * default `max_flights: 8` is the closest available estimate.
-   */
-  static getLayoutOptions() {
-    return {
-      grid_rows: FlightRadar24SplitFlapCard.estimateRowUnits(8),
-      grid_columns: 12,
-      grid_min_rows: 3,
-      grid_max_rows: 16,
-      grid_min_columns: 6
+      rows: 'auto',
+      // A departure board is a wide table — full width by default, and
+      // never squeezed below a third of the section, where the columns
+      // would start scrolling immediately.
+      columns: 'full',
+      min_columns: 12
     };
   }
 
@@ -1191,7 +1174,10 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
   }
 
   render() {
-    if (!this._hass) {
+    // Home Assistant gives no ordering guarantee between setConfig() and the
+    // hass setter. If hass lands first, `_config` doesn't exist yet and
+    // reading `visible_fields` off it threw a config error into the editor.
+    if (!this._hass || !this._config) {
       this.shadowRoot.innerHTML =
         `<div style="padding: 16px;">${this.t('editor.loading')}</div>`;
       return;
@@ -1421,11 +1407,41 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
 customElements.define('flightradar24-splitflap-card', FlightRadar24SplitFlapCard);
 customElements.define('flightradar24-splitflap-card-editor', FlightRadar24SplitFlapCardEditor);
 
+/**
+ * Offers this card when someone picks a FlightRadar24 arrivals/departures
+ * sensor in Home Assistant's entity-first "add card" flow (HA 2026.6+).
+ *
+ * Deliberately strict: returning a suggestion for an entity the board
+ * can't render would put a broken card in front of the user. Reuses the
+ * same `flights` + `status_text` test the editor's entity picker uses, so
+ * area sensors and the statistics sub-sensors are never suggested.
+ *
+ * @param {{states: Record<string, any>}} hass
+ * @param {string} entityId
+ * @returns {{config: Record<string, string>} | null}
+ */
+function suggestFlightRadar24Card(hass, entityId) {
+  if (!entityId.startsWith('sensor.')) return null;
+
+  const flights = hass?.states?.[entityId]?.attributes?.flights;
+  if (!Array.isArray(flights)) return null;
+
+  // An empty board carries no marker to inspect, so fall back to the entity
+  // ID — same reasoning as the editor's picker.
+  const isAirportBoard = flights.length > 0
+    ? flights[0].status_text !== undefined
+    : /airport_(arrivals|departures)/.test(entityId);
+  if (!isAirportBoard) return null;
+
+  return { config: { type: 'custom:flightradar24-splitflap-card', entity: entityId } };
+}
+
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'flightradar24-splitflap-card',
   name: 'FlightRadar24 Split-Flap Card',
   description: 'A split-flap airport display for FlightRadar24 flight data',
   preview: true,
-  documentationURL: 'https://github.com/GpsM2/flightradar24-splitflap-card'
+  documentationURL: 'https://github.com/GpsM2/flightradar24-splitflap-card',
+  getEntitySuggestion: suggestFlightRadar24Card
 });
