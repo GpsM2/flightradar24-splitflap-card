@@ -8,6 +8,12 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Behoben
+- Der Status wurde mitten im Wort abgeschnitten und blieb immer englisch:
+  aus „Estimated dep 07:40" wurde „Estimated de". Die Card wertet jetzt
+  das maschinenlesbare `status`-Feld aus und zeigt den übersetzten Status
+  (`ERWARTET`, `PLANMÄSSIG`, `ANNULLIERT`, `GELANDET`, `ABGEFLOGEN`,
+  `VERSPÄTET`, `UMGELEITET`). Unbekannte Status fallen auf den
+  Originaltext zurück, der dann an einer Wortgrenze gekürzt wird.
 - Auf einer Abflugtafel war die Spalte `VON` mit dem *Ziel* des Fluges
   gefüllt. Die Card erkennt jetzt die Richtung des Sensors und beschriftet
   die Spalte entsprechend `VON` (Ankünfte) bzw. `NACH` (Abflüge).
