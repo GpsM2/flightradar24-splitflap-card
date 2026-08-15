@@ -20,6 +20,13 @@ store — clean i18n, tested behavior, a disciplined release process.
   may also explicitly waive the issue for a specific small/foundational
   change ("ohne Issue erledigen") — that still requires a branch + PR, just
   skips the issue step.
+- Before starting work on an issue, check whether a contributor already has
+  an open PR against it.
+- Any external PR: if it duplicates work already shipped or doesn't fit the
+  project's direction, decline it with a PR comment — identify it as written
+  by Claude Code, give a short technical reason, then close the PR. If it's
+  good, propose it to the maintainer instead of merging; external PRs always
+  need the maintainer's explicit go-ahead before merge, good or not.
 - Never create a GitHub Release without explicit go-ahead from the
   maintainer in chat first.
 - Every release ships as a beta/pre-release first. The maintainer tests it
