@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Live thumbnail in Home Assistant's "Add card" picker and "suggested
+  cards" gallery, instead of plain description text. `getStubConfig()` now
+  picks a real arrivals/departures sensor when one exists in the Home
+  Assistant instance, and the thumbnail always renders in dark mode
+  regardless of the viewer's own theme, so the gallery of cards looks
+  consistent. Cards actually added from the picker are unaffected and
+  still default to following Home Assistant's theme as normal.
+
 ## [0.6.0] - 2026-08-15
 
 Promoted from 0.6.0-beta.2 after maintainer testing, no code changes. See the
