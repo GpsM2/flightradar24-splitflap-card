@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- The fold line across each flap was barely visible in light mode. It was a
+  flat translucent black line, which reads well against the dark theme's
+  near-white text but almost disappears against the light theme's near-black
+  text — black on black. Replaced with a two-band shadow/highlight groove so
+  at least one band always contrasts against whatever colour it crosses.
+
 ## [0.6.0-beta.1] - 2026-08-15
 
 ### Changed
