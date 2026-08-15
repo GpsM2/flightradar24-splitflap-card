@@ -711,6 +711,14 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     // Re-entering the DOM after a dashboard tab switch: the clock would
     // otherwise stay frozen at the time it was removed.
     if (this.shadowRoot.querySelector('.clock')) this.startClock();
+
+    // Home Assistant's card-picker gallery builds this element and sets
+    // `hass` on it while it is still detached — attached to the DOM only
+    // afterwards, once its own render commits. applyTheme()'s `.preview`
+    // ancestor check is therefore blind during setConfig()/the hass
+    // setter and only meaningful from here, once there is a real ancestor
+    // chain to inspect.
+    if (this.shadowRoot.querySelector('.frame')) this.applyTheme();
   }
 
   getTitle() {
@@ -1222,7 +1230,25 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
    */
   applyTheme() {
     const configured = this.config.theme;
-    const dark = configured === 'dark' ? true
+
+    // Home Assistant renders a live thumbnail of this card inside the "Add
+    // card" picker and the entity-first "suggested cards" gallery — both
+    // wrap each card in a `.preview` element (`hui-card-picker` and
+    // hui-suggestion-card respectively). A gallery where every thumbnail
+    // follows the current viewer's Home Assistant theme looks inconsistent
+    // next to the built-in cards' own static preview images, so this one is
+    // pinned to dark there regardless of `configured` or the real theme.
+    //
+    // This only affects that render, never `this.config` itself — a card
+    // actually added from the picker still defaults to following Home
+    // Assistant's theme normally. `element-preview`, the real "edit card"
+    // dialog's live preview, is a different, unrelated class name and is
+    // deliberately not matched here: a card being edited should reflect
+    // its own real configuration.
+    const inGalleryPreview = this.closest('.preview') !== null;
+
+    const dark = inGalleryPreview ? true
+      : configured === 'dark' ? true
       : configured === 'light' ? false
       : this._hass?.themes?.darkMode !== false;
 
@@ -1292,9 +1318,35 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     };
   }
 
-  static getStubConfig() {
+  /**
+   * Called by Home Assistant to seed a newly added card's initial config —
+   * and, since `preview: true` is set on the `window.customCards` entry,
+   * also to render a live thumbnail directly in the "Add card" picker and
+   * in the entity-first "suggested cards" gallery.
+   *
+   * Picking a real entity here is what makes that thumbnail show actual
+   * flight data instead of nothing: `setConfig()` throws without an
+   * entity, which Home Assistant's picker catches silently and falls back
+   * to plain description text — visually indistinguishable from no
+   * preview support at all, even with `preview: true` set.
+   *
+   * `entities` (not used by any card yet) is preferred over
+   * `entitiesFallback` (already used elsewhere), so the preview doesn't
+   * recommend an entity that already has a card. Falls back to `''` when
+   * no matching sensor exists in this Home Assistant instance yet — the
+   * picker's own built-in fallback is a reasonable result then.
+   *
+   * @param {{states: Record<string, any>}} hass
+   * @param {string[]} entities
+   * @param {string[]} entitiesFallback
+   * @returns {Record<string, unknown>}
+   */
+  static getStubConfig(hass, entities, entitiesFallback) {
+    const candidate = [...(entities || []), ...(entitiesFallback || [])]
+      .find(entityId => isFlightRadar24AirportSensor(hass, entityId));
+
     return {
-      entity: '',
+      entity: candidate || '',
       max_flights: 8,
       board: 'auto',
       theme: 'auto',
@@ -1412,25 +1464,14 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
   }
 
   /**
-   * Airport arrival/departure boards are the only supported sensors.
-   *
-   * Two other FlightRadar24 sensor kinds must be kept out of the picker:
-   * the statistics sub-sensors (_on_time, _delayed, ...) have no `flights`
-   * attribute at all, and the area sensors do have one but carry live
-   * position data instead of schedule data.
-   *
-   * `status_text` is the marker that only airport flights have. Entity IDs
-   * can be renamed (and are localised in some setups), so it is only used
-   * as a fallback when the list is empty and offers nothing to inspect.
+   * Airport arrival/departure boards are the only supported sensors. See
+   * {@link isFlightRadar24AirportSensor} for what that excludes and why.
    *
    * @param {string} entityId
    * @returns {boolean}
    */
   isAirportBoard(entityId) {
-    const flights = this._hass.states[entityId].attributes.flights;
-    if (!Array.isArray(flights)) return false;
-    if (flights.length > 0) return flights[0].status_text !== undefined;
-    return /airport_(arrivals|departures)/.test(entityId);
+    return isFlightRadar24AirportSensor(this._hass, entityId);
   }
 
   getFlightRadar24Entities() {
@@ -1650,13 +1691,38 @@ customElements.define('flightradar24-splitflap-card', FlightRadar24SplitFlapCard
 customElements.define('flightradar24-splitflap-card-editor', FlightRadar24SplitFlapCardEditor);
 
 /**
+ * Whether `entityId` is one of the FlightRadar24 integration's airport
+ * arrivals/departures sensors, as opposed to an area sensor (live position
+ * data, not schedule data) or one of the statistics sub-sensors (_on_time,
+ * _delayed, ...), which carry no `flights` attribute at all.
+ *
+ * `status_text` is the marker that only airport flights carry. Entity IDs
+ * can be renamed (and are localised in some setups), so the ID pattern is
+ * only used as a fallback when the flight list is empty and offers nothing
+ * to inspect.
+ *
+ * Shared by the editor's entity picker, the entity-first "add card" flow's
+ * suggestion hook, and the card-picker preview's own entity selection — one
+ * definition of "supported sensor" for all three.
+ *
+ * @param {{states: Record<string, any>}} hass
+ * @param {string} entityId
+ * @returns {boolean}
+ */
+function isFlightRadar24AirportSensor(hass, entityId) {
+  const flights = hass?.states?.[entityId]?.attributes?.flights;
+  if (!Array.isArray(flights)) return false;
+  return flights.length > 0
+    ? flights[0].status_text !== undefined
+    : /airport_(arrivals|departures)/.test(entityId);
+}
+
+/**
  * Offers this card when someone picks a FlightRadar24 arrivals/departures
  * sensor in Home Assistant's entity-first "add card" flow (HA 2026.6+).
  *
  * Deliberately strict: returning a suggestion for an entity the board
- * can't render would put a broken card in front of the user. Reuses the
- * same `flights` + `status_text` test the editor's entity picker uses, so
- * area sensors and the statistics sub-sensors are never suggested.
+ * can't render would put a broken card in front of the user.
  *
  * @param {{states: Record<string, any>}} hass
  * @param {string} entityId
@@ -1664,16 +1730,7 @@ customElements.define('flightradar24-splitflap-card-editor', FlightRadar24SplitF
  */
 function suggestFlightRadar24Card(hass, entityId) {
   if (!entityId.startsWith('sensor.')) return null;
-
-  const flights = hass?.states?.[entityId]?.attributes?.flights;
-  if (!Array.isArray(flights)) return null;
-
-  // An empty board carries no marker to inspect, so fall back to the entity
-  // ID — same reasoning as the editor's picker.
-  const isAirportBoard = flights.length > 0
-    ? flights[0].status_text !== undefined
-    : /airport_(arrivals|departures)/.test(entityId);
-  if (!isAirportBoard) return null;
+  if (!isFlightRadar24AirportSensor(hass, entityId)) return null;
 
   return { config: { type: 'custom:flightradar24-splitflap-card', entity: entityId } };
 }
