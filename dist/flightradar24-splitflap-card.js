@@ -860,7 +860,8 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-tone-ok: #58c98a;
           --fr24-tone-done: #8b929e;
           --fr24-divider: rgba(255, 255, 255, 0.07);
-          --fr24-seam: rgba(0, 0, 0, 0.55);
+          --fr24-seam-shadow: rgba(0, 0, 0, 0.6);
+          --fr24-seam-highlight: rgba(255, 255, 255, 0.08);
           --fr24-highlight: rgba(255, 255, 255, 0.10);
 
           --fr24-tile-w: ${tileWidth};
@@ -892,7 +893,12 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-tone-ok: #146c43;
           --fr24-tone-done: #5b6472;
           --fr24-divider: rgba(0, 0, 0, 0.08);
-          --fr24-seam: rgba(0, 0, 0, 0.18);
+          /* Rebalanced against the light theme's near-black glyph colour
+             (see the seam's ::after comment): the shadow half alone would
+             nearly vanish where the seam crosses dark text, so this leans
+             on a much stronger highlight half than the dark theme needs. */
+          --fr24-seam-shadow: rgba(0, 0, 0, 0.35);
+          --fr24-seam-highlight: rgba(255, 255, 255, 0.65);
           --fr24-highlight: rgba(255, 255, 255, 0.75);
         }
 
@@ -1080,19 +1086,35 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
            distinguished by carrying no character, and by not taking the
            status colour. */
 
-        /* The split seam every flap has across its middle. */
         /* The split runs through the character, not behind it: on a real
            flap the character is printed across two halves, so the seam
            crosses it. z-index lifts it above the glyph, which is ordinary
-           inline content and would otherwise paint on top. */
+           inline content and would otherwise paint on top.
+
+           A flat translucent line isn't enough: composited over near-black
+           text on a light tile, semi-transparent black barely differs from
+           the glyph it's supposed to cross, so it reads fine on the dark
+           theme (light text) but all but disappears on the light theme
+           (dark text). A two-band shadow-then-highlight groove, like the
+           bevel a real fold casts, keeps at least one band contrasting
+           against whatever colour it crosses — the shadow half against
+           light backgrounds and light text, the highlight half against
+           dark text and dark backgrounds. */
         .flap-char::after {
           content: '';
           position: absolute;
           left: 0;
           right: 0;
           top: 50%;
-          height: 1px;
-          background: var(--fr24-seam);
+          height: 2px;
+          transform: translateY(-1px);
+          background: linear-gradient(
+            180deg,
+            var(--fr24-seam-shadow) 0%,
+            var(--fr24-seam-shadow) 50%,
+            var(--fr24-seam-highlight) 50%,
+            var(--fr24-seam-highlight) 100%
+          );
           z-index: 1;
         }
 
