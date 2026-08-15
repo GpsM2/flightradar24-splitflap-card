@@ -5,7 +5,7 @@
  *
  * Kept in sync with the release tag; see CLAUDE.md.
  */
-const CARD_VERSION = '0.5.0';
+const CARD_VERSION = '0.6.0-beta.1';
 
 console.info(
   `%c FLIGHTRADAR24-SPLITFLAP-CARD %c ${CARD_VERSION} `,
@@ -38,6 +38,47 @@ const STATUS_KEYS = {
 const DELAY_THRESHOLD_MINUTES = 5;
 const EARLY_THRESHOLD_MINUTES = 5;
 
+/**
+ * The board's own typeface, subset to the characters it can render (~3 KB of
+ * the 95 KB original) and served from this repo — never from a third party,
+ * so no dashboard makes an outbound request just to draw a flight board.
+ *
+ * Registered on the document rather than inside the shadow root: `@font-face`
+ * is document-scoped, and shadow-tree font rules are not reliably honoured.
+ * The URL is resolved from `import.meta.url`, like `translations/`, because
+ * CSS inside a shadow root resolves relative URLs against the *page*, not
+ * the module.
+ */
+const BOARD_FONT_FAMILY = 'JetBrains Mono';
+
+function registerBoardFont() {
+  const id = 'flightradar24-splitflap-card-font';
+  if (document.getElementById(id)) return;
+
+  const url = new URL('fonts/JetBrainsMono-Bold-subset.woff2', import.meta.url).href;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `@font-face{font-family:'${BOARD_FONT_FAMILY}';`
+    + `src:url('${url}') format('woff2');`
+    + 'font-weight:700;font-style:normal;font-display:swap;}';
+  document.head.appendChild(style);
+}
+
+/**
+ * The order of flaps on the wheel. A physical wheel turns one way only, so
+ * the scramble animation walks this sequence forwards and wraps around
+ * rather than reversing. Blank first, as on a real board, then digits and
+ * letters — the punctuation the board actually prints comes last.
+ */
+const FLAP_SEQUENCE = ' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ-:+./';
+
+/**
+ * Upper bound on intermediate characters shown per flap. Without it a flap
+ * crossing most of the alphabet would still be turning long after its
+ * neighbours had settled.
+ */
+const MAX_SCRAMBLE_STEPS = 12;
+
 /** Languages shipped in `translations/`. */
 const SUPPORTED_LANGUAGES = ['en', 'de', 'es', 'fr'];
 
@@ -61,6 +102,8 @@ export const FALLBACK_TRANSLATIONS = {
     "diverted": "DIVERTED",
     "early": "EARLY",
     "earlyMinutes": "-{minutes} MIN",
+    "editor.accentColor": "Accent colour",
+    "editor.accentColorHelper": "Leave empty to follow the selected appearance",
     "editor.board": "Board direction",
     "editor.boardArrivals": "Arrivals",
     "editor.boardAuto": "Auto-detect",
@@ -78,12 +121,22 @@ export const FALLBACK_TRANSLATIONS = {
     "editor.flipDelayHelper": "Delay between character flips",
     "editor.flipDuration": "Flip duration (ms)",
     "editor.flipDurationHelper": "Duration of the flip animation",
+    "editor.flipStyle": "Flip animation",
+    "editor.flipStyleFlip": "Flip",
+    "editor.flipStyleHelper": "How a flap changes to its new character",
+    "editor.flipStyleScramble": "Roll through characters",
     "editor.language": "Language",
     "editor.languageAuto": "Automatic",
     "editor.languageHelper": "Leave on automatic to follow Home Assistant",
     "editor.loading": "Loading…",
     "editor.maxFlights": "Maximum flights",
     "editor.maxFlightsHelper": "Number of rows to display (1-20)",
+    "editor.rail": "Edge bars",
+    "editor.railAccent": "Accent, fading",
+    "editor.railHelper": "The coloured bars along the top and bottom of the board",
+    "editor.railNone": "None",
+    "editor.railRainbow": "Rainbow",
+    "editor.railSolid": "Accent, solid",
     "editor.theme": "Appearance",
     "editor.themeAuto": "Follow Home Assistant",
     "editor.themeDark": "Dark",
@@ -150,6 +203,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     this._strings = FALLBACK_TRANSLATIONS;
     /** Pending flip timers, so they can be cancelled on removal. */
     this._timers = new Set();
+    registerBoardFont();
   }
 
   /**
@@ -234,6 +288,9 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       language: config.language || '',
       board: config.board || 'auto',
       theme: config.theme || 'auto',
+      accent_color: config.accent_color || '',
+      rail_style: config.rail_style || 'accent',
+      flip_style: config.flip_style === 'scramble' ? 'scramble' : 'flip',
       visible_fields: visible_fields
     };
 
@@ -352,12 +409,33 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       fields.time = cancelled ? '--:--' : (scheduled ? this.formatTime(scheduled) : '--:--');
     }
     if (vf.expected !== false) fields.expected = this.formatExpected(flight, cancelled);
-    if (vf.flight !== false) fields.flight = (flight.flight_number || flight.callsign || '').substring(0, 8).padEnd(8, ' ');
-    if (vf.airport !== false) fields.airport = (flight.airport_city || flight.airport_code_iata || '').substring(0, 15).padEnd(15, ' ');
-    if (vf.status !== false) fields.status = this.formatStatus(flight).substring(0, 12).padEnd(12, ' ');
-    if (vf.aircraft !== false) fields.aircraft = this.truncateAtWord(flight.aircraft_model || '', 14).padEnd(14, ' ');
+    if (vf.flight !== false) fields.flight = this.fit(flight.flight_number || flight.callsign, 8);
+    if (vf.airport !== false) fields.airport = this.fit(flight.airport_city || flight.airport_code_iata, 15);
+    if (vf.status !== false) fields.status = this.fit(this.formatStatus(flight), 12);
+    if (vf.aircraft !== false) {
+      fields.aircraft = this.fit(this.truncateAtWord(flight.aircraft_model || '', 14), 14);
+    }
 
     return fields;
+  }
+
+  /**
+   * A real board only carries uppercase flaps, but the integration's values
+   * are mixed case ("Hamburg", "Airbus A320"), so the board has to do the
+   * conversion itself.
+   *
+   * Uppercasing happens before the fixed width is applied: in German `ß`
+   * becomes `SS`, which is one character longer and would otherwise push
+   * every following tile out of its column. Locale-aware, since the same
+   * character maps differently per language.
+   *
+   * @param {string | undefined | null} value
+   * @param {number} width
+   * @returns {string}
+   */
+  fit(value, width) {
+    const upper = String(value || '').toLocaleUpperCase(this.resolveLanguage());
+    return upper.substring(0, width).padEnd(width, ' ');
   }
 
   formatTime(date) {
@@ -534,16 +612,31 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
     }
   }
 
+  /**
+   * Puts a character on a flap and keeps the `blank` flag in step. That flag
+   * drives both the empty-flap styling and whether the status tone applies,
+   * so it has to follow the character rather than stay at whatever
+   * createCell() first saw.
+   *
+   * @param {HTMLElement} element
+   * @param {string} char
+   */
+  setFlapChar(element, char) {
+    element.textContent = char;
+    element.classList.toggle('blank', char === ' ');
+  }
+
   flipCharacter(element, oldChar, newChar, delay) {
+    if (this.config.flip_style === 'scramble') {
+      this.scrambleCharacter(element, oldChar, newChar, delay);
+      return;
+    }
+
     const timer = setTimeout(() => {
       element.classList.add('flipping');
 
       const inner = setTimeout(() => {
-        element.textContent = newChar;
-        // `blank` drives both the empty-flap background and whether the
-        // status tone colours this tile, so it has to follow the character
-        // rather than stay at whatever createCell() first saw.
-        element.classList.toggle('blank', newChar === ' ');
+        this.setFlapChar(element, newChar);
         element.classList.remove('flipping');
         this._timers.delete(inner);
       }, this.config.flip_duration / 2);
@@ -551,6 +644,56 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       this._timers.delete(timer);
     }, delay);
     this._timers.add(timer);
+  }
+
+  /**
+   * Steps through the wheel's own character sequence from the old character
+   * to the new one, forwards only — a real split-flap wheel cannot run
+   * backwards, so `Z -> B` wraps around rather than reversing.
+   *
+   * The number of steps is capped: crossing most of the alphabet would
+   * otherwise take far longer than `flip_duration`, and a board where some
+   * flaps are still spinning long after the rest have settled reads as
+   * broken rather than mechanical. Long journeys therefore sample the
+   * sequence instead of showing every position.
+   *
+   * @param {HTMLElement} element
+   * @param {string} oldChar
+   * @param {string} newChar
+   * @param {number} delay
+   */
+  scrambleCharacter(element, oldChar, newChar, delay) {
+    const sequence = FLAP_SEQUENCE;
+    const from = sequence.indexOf(oldChar);
+    const to = sequence.indexOf(newChar);
+
+    // A character the wheel doesn't carry can't be stepped to; fall back to
+    // simply setting it once the flap would have finished turning.
+    if (from < 0 || to < 0) {
+      const timer = setTimeout(() => {
+        this.setFlapChar(element, newChar);
+        this._timers.delete(timer);
+      }, delay + this.config.flip_duration / 2);
+      this._timers.add(timer);
+      return;
+    }
+
+    const distance = (to - from + sequence.length) % sequence.length;
+    const steps = Math.min(distance, MAX_SCRAMBLE_STEPS);
+    const stepDuration = this.config.flip_duration / Math.max(steps, 1);
+
+    for (let step = 1; step <= steps; step++) {
+      // Sampled so the last step always lands exactly on the target.
+      const index = step === steps
+        ? to
+        : (from + Math.round((distance * step) / steps)) % sequence.length;
+
+      const timer = setTimeout(() => {
+        this.setFlapChar(element, sequence[index]);
+        this._timers.delete(timer);
+      }, delay + step * stepDuration);
+      this._timers.add(timer);
+    }
   }
 
   /** Pending flips would otherwise fire against a detached DOM. */
@@ -711,8 +854,6 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-tile-top: #33373f;
           --fr24-tile-bottom: #23262c;
           --fr24-tile-fg: #f4f5f7;
-          --fr24-blank-top: #212429;
-          --fr24-blank-bottom: #1a1d22;
           --fr24-accent: #ffa500;
           --fr24-muted: #8b929e;
           --fr24-tone-alert: #ff6b5e;
@@ -723,8 +864,13 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-highlight: rgba(255, 255, 255, 0.10);
 
           --fr24-tile-w: ${tileWidth};
-          --fr24-tile-h: calc(var(--fr24-tile-w) * 2.15);
-          --fr24-tile-font: calc(var(--fr24-tile-w) * 1.25);
+          /* Sized from the board font's actual metrics (cap height 0.73em,
+             advance 0.60em), not by eye. At these ratios a capital fills
+             ~61% of the flap's height and ~78% of its width. The previous
+             2.15 aspect left the character at ~34% of the height, which is
+             what made the flaps look oversized and the text adrift. */
+          --fr24-tile-h: calc(var(--fr24-tile-w) * 1.55);
+          --fr24-tile-font: calc(var(--fr24-tile-w) * 1.3);
 
           /* Both masthead side slots share this width, wide enough for the
              clock (the larger of the two) — see the .masthead comment. */
@@ -739,10 +885,6 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           --fr24-tile-top: #ffffff;
           --fr24-tile-bottom: #dcdfe6;
           --fr24-tile-fg: #14161a;
-          /* Only just distinguishable from a filled tile: on a light board a
-             stronger contrast makes trailing blanks read as a progress bar. */
-          --fr24-blank-top: #f2f4f7;
-          --fr24-blank-bottom: #e6e9ee;
           --fr24-accent: #b45309;
           --fr24-muted: #5b6472;
           /* Darkened against the light tiles so the contrast still carries. */
@@ -758,7 +900,10 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           background: var(--fr24-frame-bg);
           border-radius: 12px;
           overflow: hidden;
-          font-family: 'Courier New', ui-monospace, monospace;
+          /* Monospace is structural, not stylistic: every character gets
+             its own fixed-width flap, so a proportional fallback would
+             break the columns outright. */
+          font-family: '${BOARD_FONT_FAMILY}', ui-monospace, monospace;
           box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
         }
 
@@ -771,6 +916,25 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
             var(--fr24-accent) 45%,
             color-mix(in srgb, var(--fr24-accent) 45%, transparent) 100%
           );
+        }
+
+        /* A solid bar in the accent colour, without the fade. */
+        :host([data-rail="solid"]) .rail {
+          background: var(--fr24-accent);
+        }
+
+        /* The multicoloured edge some split-flap boards carry. Fixed hues
+           rather than theme tokens: the point of this option is the stripe
+           itself, and deriving it from the accent would collapse it. */
+        :host([data-rail="rainbow"]) .rail {
+          background: linear-gradient(
+            90deg,
+            #e8572a, #f5a623, #7ed321, #4a90d9, #bd10e0
+          );
+        }
+
+        :host([data-rail="none"]) .rail {
+          display: none;
         }
 
         /* Icon and clock used to sit in "auto"-sized tracks, which only
@@ -870,18 +1034,16 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           /* Centring the line box is not enough: it is sized from the
              font's ascent and descent, but the board only ever renders
              uppercase, digits and punctuation, which use none of the
-             descent. The ink therefore sits above the tile's middle — and
-             above the fold line, which should cut a character in half.
-             The padding pushes it back down; box-sizing keeps the tile the
-             same height.
+             descent, so the ink lands above the flap's middle — and above
+             the seam, which should bisect the character.
 
-             Derived from the font's metric ratios rather than one measured
-             size: for Courier New the ascent, descent and cap height are
-             about 0.83em, 0.30em and 0.58em, which puts the ink
-             (0.30 - 0.83)/2 + 0.58/2 ≈ 0.025em above centre. Padding is
-             halved by the centring, hence twice that. */
+             The value follows from the board font's own metrics (ascent
+             1.02em, descent 0.30em, cap 0.73em → ink sits 0.005em high;
+             padding is halved by the centring, hence twice that). It is
+             font-specific: Courier New, the previous face, needed roughly
+             five times as much. */
           box-sizing: border-box;
-          padding-top: 0.05em;
+          padding-top: 0.01em;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -913,19 +1075,16 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
 
         .flap-char.carrier { color: var(--fr24-accent); }
 
-        /* Unused positions stay part of the board instead of leaving a hole. */
-        .flap-char.blank {
-          background: linear-gradient(
-            180deg,
-            var(--fr24-blank-top) 0%,
-            var(--fr24-blank-bottom) 49%,
-            var(--fr24-blank-top) 51%,
-            var(--fr24-blank-bottom) 100%
-          );
-          box-shadow: inset 0 1px 0 var(--fr24-highlight);
-        }
+        /* A blank flap is the same physical flap with nothing printed on
+           it, so it deliberately has no styling of its own — it is only
+           distinguished by carrying no character, and by not taking the
+           status colour. */
 
         /* The split seam every flap has across its middle. */
+        /* The split runs through the character, not behind it: on a real
+           flap the character is printed across two halves, so the seam
+           crosses it. z-index lifts it above the glyph, which is ordinary
+           inline content and would otherwise paint on top. */
         .flap-char::after {
           content: '';
           position: absolute;
@@ -934,6 +1093,7 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
           top: 50%;
           height: 1px;
           background: var(--fr24-seam);
+          z-index: 1;
         }
 
         .flap-char.flipping {
@@ -1045,6 +1205,30 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       : this._hass?.themes?.darkMode !== false;
 
     this.setAttribute('data-theme', dark ? 'dark' : 'light');
+    this.setAttribute('data-rail', this.config.rail_style || 'accent');
+
+    // An explicit accent overrides the theme's own token. Set on the host so
+    // it cascades into every rule that already reads --fr24-accent, rather
+    // than duplicating the colour at each use.
+    const accent = this.toCssColour(this.config.accent_color);
+    if (accent) {
+      this.style.setProperty('--fr24-accent', accent);
+    } else {
+      this.style.removeProperty('--fr24-accent');
+    }
+  }
+
+  /**
+   * The editor's colour selector hands back `[r, g, b]`, while a hand-written
+   * YAML config would carry a plain CSS string. Accept both rather than
+   * forcing one of the two entry points to look wrong.
+   *
+   * @param {unknown} value
+   * @returns {string}
+   */
+  toCssColour(value) {
+    if (Array.isArray(value) && value.length === 3) return `rgb(${value.join(',')})`;
+    return typeof value === 'string' ? value : '';
   }
 
   /**
@@ -1092,6 +1276,8 @@ class FlightRadar24SplitFlapCard extends HTMLElement {
       max_flights: 8,
       board: 'auto',
       theme: 'auto',
+      rail_style: 'accent',
+      flip_style: 'flip',
       visible_fields: {
         time: true,
         expected: true,
@@ -1177,6 +1363,9 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
       flip_delay: 50,
       board: 'auto',
       theme: 'auto',
+      accent_color: '',
+      rail_style: 'accent',
+      flip_style: 'flip',
       visible_fields: {
         time: true,
         expected: true,
@@ -1245,6 +1434,9 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     language: 'editor.language',
     board: 'editor.board',
     theme: 'editor.theme',
+    rail_style: 'editor.rail',
+    accent_color: 'editor.accentColor',
+    flip_style: 'editor.flipStyle',
     max_flights: 'editor.maxFlights',
     flip_duration: 'editor.flipDuration',
     flip_delay: 'editor.flipDelay',
@@ -1263,6 +1455,9 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
     language: 'editor.languageHelper',
     board: 'editor.boardHelper',
     theme: 'editor.themeHelper',
+    rail_style: 'editor.railHelper',
+    accent_color: 'editor.accentColorHelper',
+    flip_style: 'editor.flipStyleHelper',
     max_flights: 'editor.maxFlightsHelper',
     flip_duration: 'editor.flipDurationHelper',
     flip_delay: 'editor.flipDelayHelper',
@@ -1320,6 +1515,23 @@ class FlightRadar24SplitFlapCardEditor extends HTMLElement {
           { value: 'auto', label: this.t('editor.themeAuto') },
           { value: 'dark', label: this.t('editor.themeDark') },
           { value: 'light', label: this.t('editor.themeLight') }
+        ])
+      },
+      {
+        name: 'rail_style',
+        ...select([
+          { value: 'accent', label: this.t('editor.railAccent') },
+          { value: 'solid', label: this.t('editor.railSolid') },
+          { value: 'rainbow', label: this.t('editor.railRainbow') },
+          { value: 'none', label: this.t('editor.railNone') }
+        ])
+      },
+      { name: 'accent_color', selector: { color_rgb: {} } },
+      {
+        name: 'flip_style',
+        ...select([
+          { value: 'flip', label: this.t('editor.flipStyleFlip') },
+          { value: 'scramble', label: this.t('editor.flipStyleScramble') }
         ])
       },
       { name: 'max_flights', selector: { number: { min: 1, max: 20, mode: 'box' } } },

@@ -1,37 +1,37 @@
 # FlightRadar24 Split-Flap Card
 
-Eine Custom Lovelace Card für Home Assistant, die Flugdaten im Stil einer klassischen Flughafen-Anzeigetafel mit animierten Split-Flap-Displays darstellt.
+An animated split-flap airport board for Home Assistant.
 
 ## Features
 
-- 🎯 Authentische Split-Flap-Animation
-- 🔄 Intelligente Updates (nur geänderte Zeichen werden animiert)
-- 📊 Übersichtliche Darstellung aller Flugdaten
-- 🎨 Realistisches dunkles Design
-- ⚙️ Voll konfigurierbar
+- Authentic split-flap animation
+- Arrivals and departures for an airport
+- Delay indicator with colour-coded status
+- Light and dark mode
+- Visual configuration editor
 
-## Voraussetzungen
+## Requirements
 
-Diese Card benötigt die [FlightRadar24 Integration](https://github.com/AlexandrErohin/home-assistant-flightradar24).
+This card needs the
+[FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24).
 
-## Schnellstart
+## Getting started
 
-Karte über die Oberfläche hinzufügen: Dashboard bearbeiten →
-**Karte hinzufügen** → nach „FlightRadar24 Split-Flap Card" suchen → Sensor
-auswählen. YAML ist nicht nötig.
+Add the card through the interface: edit the dashboard → **Add card** → search
+for "FlightRadar24 Split-Flap Card" → pick the sensor. No YAML needed.
 
-Zur Auswahl stehen nur die Ankunfts- und Abflugtafeln der FlightRadar24-
-Integration.
+Only the FlightRadar24 arrivals and departures boards are offered.
 
-## Konfiguration
+## Configuration
 
-Alle Optionen stehen im visuellen Editor: Titel, Sprache, Anzahl der Flüge,
-Richtung der Tafel, helles/dunkles Erscheinungsbild, Animationsgeschwindigkeit
-und die sichtbaren Spalten.
+Every option is available in the visual editor: title, language, number of
+flights, board direction, light/dark appearance, accent colour, edge bars,
+animation style and the visible columns.
 
-> Mehrere Tafeln bitte als **eigene Karten** einfügen, nicht über eine
-> Stapel-Karte kombinieren – sonst berechnet Home Assistant die Höhe falsch.
+> Add multiple boards as **separate cards** rather than combining them in a
+> stack card — otherwise Home Assistant calculates the height incorrectly.
 
-## Unterstützung
+## Support
 
-Bei Problemen oder Fragen erstelle bitte ein [Issue auf GitHub](https://github.com/GpsM2/flightradar24-splitflap-card/issues).
+For problems or questions, please open an
+[issue on GitHub](https://github.com/GpsM2/flightradar24-splitflap-card/issues).
