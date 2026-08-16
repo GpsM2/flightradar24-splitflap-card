@@ -1,8 +1,11 @@
 # FlightRadar24 Split-Flap Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub Release](https://img.shields.io/github/release/GpsM2/flightradar24-splitflap-card.svg?style=flat-square)](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
-[![License](https://img.shields.io/github/license/GpsM2/flightradar24-splitflap-card.svg?style=flat-square)](LICENSE)
+[![HACS: custom repository](https://img.shields.io/badge/HACS-Custom-orange?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
+[![GitHub release](https://img.shields.io/github/v/release/GpsM2/flightradar24-splitflap-card?style=flat-square)](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/GpsM2/flightradar24-splitflap-card/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/GpsM2/flightradar24-splitflap-card/actions/workflows/ci.yml)
+[![HACS validation](https://img.shields.io/github/actions/workflow/status/GpsM2/flightradar24-splitflap-card/validate.yml?branch=main&style=flat-square&label=HACS%20validation)](https://github.com/GpsM2/flightradar24-splitflap-card/actions/workflows/validate.yml)
+[![License: MIT](https://img.shields.io/github/license/GpsM2/flightradar24-splitflap-card?style=flat-square)](LICENSE)
+[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?style=flat-square&logo=kofi&logoColor=white)](https://ko-fi.com/R8O124JOD1)
 
 A custom Lovelace card for Home Assistant that renders flight data from the
 [FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
@@ -24,14 +27,17 @@ as an animated split-flap airport board.
 ## Features
 
 - Authentic split-flap animation — each character flips on its own, and only
-  characters that actually changed are animated
+  characters that actually changed are animated. Optionally, flaps can roll
+  through the character sequence up to the target instead.
 - Works with the integration's airport sensors: arrivals and departures
 - Delay indicator: scheduled and expected time side by side, colour-coded
 - Light and dark mode, following the Home Assistant theme automatically
+- Customisable accent colour and edge bars (fading, solid, rainbow, or off)
 - Responsive grid: flaps shrink until the board fits the card
 - Bundled typeface — no fonts are loaded from third parties
 - Multilingual interface (English, German, Spanish, French)
-- Visual configuration editor — no YAML required
+- Visual configuration editor — no YAML required, with a live preview of the
+  board right in Home Assistant's card picker
 
 ## Requirements
 
@@ -70,9 +76,10 @@ as an animated split-flap airport board.
 The card is set up through the Home Assistant interface — no YAML needed.
 
 1. Edit the dashboard → **Add card**
-2. Search for "FlightRadar24 Split-Flap Card" and select it
-3. Pick the sensor in the editor — only arrivals and departures boards are
-   offered, other FlightRadar24 sensors are filtered out
+2. Search for "FlightRadar24 Split-Flap Card" — the picker shows a live
+   preview of the board, using one of your own sensors
+3. Select it, then pick the sensor in the editor — only arrivals and
+   departures boards are offered, other FlightRadar24 sensors are filtered out
 4. Adjust the remaining options and save
 
 From Home Assistant 2026.6 there is an even shorter route: when adding a card,
@@ -207,6 +214,23 @@ More detail in [INSTALLATION.md](INSTALLATION.md).
 Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Please report
 bugs and feature requests as an
 [issue](https://github.com/GpsM2/flightradar24-splitflap-card/issues).
+
+## Supporting this project
+
+[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support%20this%20project-ff5e5b?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/R8O124JOD1)
+
+Worth being upfront about how this card is built: nearly all of it is written
+with [Claude Code](https://claude.com/claude-code), working from my direction,
+testing and review. That is a paid subscription, and it is what makes the pace
+of development here possible at all.
+
+Sponsorship goes directly towards that licence. Concretely: without it I can't
+keep working through reported issues and feature requests — so if this card is
+useful to you and you'd like it to keep improving, a contribution genuinely
+decides what gets fixed next.
+
+Either way, the card stays free and MIT-licensed. Bug reports, translations and
+pull requests help just as much as money does.
 
 ## Credits
 
