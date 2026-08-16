@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- README refreshed for the current state of the card: the 0.6.0 additions
+  (accent colour, edge bars, second animation style, card-picker preview) are
+  now listed, the badge row gained CI and HACS-validation status, and the
+  screenshots were regenerated so the light theme shows the corrected fold
+  line.
+- Added a support section (Ko-fi) to README and info.md, stating plainly that
+  the card is built with Claude Code and what sponsorship funds.
+
 ### Added
 - Live thumbnail in Home Assistant's "Add card" picker and "suggested
   cards" gallery, instead of plain description text. `getStubConfig()` now
