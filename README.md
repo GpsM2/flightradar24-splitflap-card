@@ -13,9 +13,6 @@ A custom Lovelace card for Home Assistant that renders flight data from the
 [FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
 as an animated split-flap airport board.
 
-**Still in active development.** Feedback and contributions are welcome — see
-[CONTRIBUTING.md](CONTRIBUTING.md).
-
 ![Arrivals, dark theme](docs/screenshots/arrivals-dark.png)
 
 <details>
