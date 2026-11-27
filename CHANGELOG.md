@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2026-11-27
+
+First stable release candidate: the card is in the default catalog and
+feature-complete for its scope.
+
 ### Changed
 - Installation instructions follow the card into the default catalog: no
   custom repository to add, and no Home Assistant restart — a browser reload
@@ -283,7 +288,8 @@ entry below for what's actually in this release.
 - Event-based updates (no polling)
 - Render performance optimised through selective updates
 
-[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/1.0.0-beta.1...HEAD
+[1.0.0-beta.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.6.0...1.0.0-beta.1
 [0.6.0]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.6.0-beta.2...0.6.0
 [0.6.0-beta.2]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.6.0-beta.1...0.6.0-beta.2
 [0.6.0-beta.1]: https://github.com/GpsM2/flightradar24-splitflap-card/compare/0.5.0...0.6.0-beta.1
