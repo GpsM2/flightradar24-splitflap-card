@@ -9,28 +9,24 @@ This card needs the
 
 If it isn't installed yet:
 
-1. Open HACS
+1. Open **Settings** → **Marketplace** (HACS before Home Assistant 2026.11)
 2. Search for "FlightRadar24"
 3. Install the integration
-4. Restart Home Assistant
+4. Restart Home Assistant — an integration needs this, unlike the card below
 5. Configure the integration (Settings → Devices & services → Add integration)
 
 ## Step 2: install the Split-Flap Card
 
-### Via HACS (recommended)
+### Via the Marketplace (recommended)
 
-1. Open HACS
-2. Click "Frontend"
-3. Three-dot menu at the top right → "Custom repositories"
-4. Add the repository URL:
-   ```
-   https://github.com/GpsM2/flightradar24-splitflap-card
-   ```
-5. Choose category "Lovelace"
-6. Click "Add"
-7. Search for "FlightRadar24 Split-Flap Card"
-8. Install
-9. Clear the browser cache (Ctrl+F5)
+[![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=GpsM2&repository=flightradar24-splitflap-card&category=plugin)
+
+The card is in the default catalog, so there is no repository to add.
+
+1. Click the badge above, or open **Settings** → **Marketplace** (HACS before
+   Home Assistant 2026.11) and search for "FlightRadar24 Split-Flap Card"
+2. Install
+3. Reload the browser — a dashboard card doesn't need a Home Assistant restart
 
 ### Manual installation
 
@@ -112,8 +108,8 @@ dashboard.
 
 **Fix:**
 1. Clear the browser cache (Ctrl+F5)
-2. Restart Home Assistant
-3. Add the resource again
+2. Check the resource under Settings → Dashboards → Resources, and add it
+   again if it is missing
 
 ### No data visible
 
@@ -146,8 +142,7 @@ In the FlightRadar24 integration:
 
 **Caching problem:**
 1. Clear the browser cache completely
-2. Restart Home Assistant
-3. Test in a private window
+2. Test in a private window
 
 ## Recommended settings
 
