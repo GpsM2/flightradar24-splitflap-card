@@ -8,13 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Installation instructions follow the card into the default catalog: no
+  custom repository to add, and no Home Assistant restart — a browser reload
+  is enough for a dashboard card. They now name the Marketplace (Settings →
+  Marketplace, built in since Home Assistant 2026.11) and keep HACS for
+  earlier versions. A My Home Assistant badge opens the card directly; it uses
+  the `hacs_repository` link, which reaches HACS before 2026.11 and the
+  Marketplace after.
+- Installation steps and install badges are marked to be left out of the
+  Marketplace page (Home Assistant 2026.12+), which has its own install button.
+- `hacs.json` sets `hide_default_branch`, so the unreleased state of `main` is
+  no longer offered as an installable version.
+
 - README refreshed for the current state of the card: the 0.6.0 additions
   (accent colour, edge bars, second animation style, card-picker preview) are
   now listed, the badge row gained CI and HACS-validation status, and the
   screenshots were regenerated so the light theme shows the corrected fold
   line.
-- Added a support section (Ko-fi) to README and info.md, stating plainly that
+- Added a support section (Ko-fi) to the README, stating plainly that
   the card is built with Claude Code and what sponsorship funds.
+
+### Removed
+- `info.md` and the `render_readme` key. The Marketplace always shows the
+  README, and neither is part of the current `hacs.json` reference any more.
 
 ### Added
 - Live thumbnail in Home Assistant's "Add card" picker and "suggested

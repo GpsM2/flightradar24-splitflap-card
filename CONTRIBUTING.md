@@ -106,7 +106,6 @@ Please update, where relevant:
 - `README.md` — main documentation
 - `INSTALLATION.md` — installation guide
 - `CHANGELOG.md` — list of changes
-- `info.md` — HACS info
 - Inline comments in the code
 
 Everything in this repository is written in English.

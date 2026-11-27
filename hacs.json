@@ -1,6 +1,6 @@
 {
   "name": "FlightRadar24 Split-Flap Card",
   "filename": "flightradar24-splitflap-card.js",
-  "render_readme": true,
+  "hide_default_branch": true,
   "homeassistant": "2026.2.0"
 }

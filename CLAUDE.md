@@ -4,12 +4,13 @@
 
 FlightRadar24 Split-Flap Card — a custom Lovelace card for Home Assistant that
 renders flight data from the [FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24)
-as an animated split-flap airport display. Distributed via HACS (Lovelace/plugin
-category). Pure frontend: one vanilla JS custom element (`HTMLElement`, Shadow
-DOM), no backend/Python component, no bundler today.
+as an animated split-flap airport display. Distributed through the Home
+Assistant Marketplace (HACS before HA 2026.11), `plugin` category, listed in
+the default catalog since October 2026. Pure frontend: one vanilla JS custom
+element (`HTMLElement`, Shadow DOM), no backend/Python component, no bundler.
 
-Goal: bring this card to a standard suitable for the official HACS default
-store — clean i18n, tested behavior, a disciplined release process.
+Goal: keep it at default-catalog standard — clean i18n, tested behavior, a
+disciplined release process.
 
 ## Collaboration rules (no exceptions)
 
@@ -60,12 +61,12 @@ instead rather than looking for a workaround.
 
 - `bug` — something is broken.
 - `enhancement` — new feature or improvement.
-- `documentation` — README/INSTALLATION/CHANGELOG/info.md work.
+- `documentation` — README/INSTALLATION/CHANGELOG work.
 - `i18n` — translations, hardcoded text, `translations/*.json`, language
   fallback logic. Not for pure layout/visual changes (use `design`).
 - `design` — visual design, layout, theming.
 - `tooling` — dev tooling, linting, type-checking, CI.
-- `hacs` — HACS packaging, publishing, store-readiness.
+- `hacs` — Marketplace/HACS packaging, publishing, catalog.
 - `needs-decision` — requires a maintainer decision before work starts.
 
 ## Versioning
@@ -94,21 +95,22 @@ Equivalent gates before merging any PR:
 - `npm run check:i18n` clean (guards the i18n invariants, see below).
 A minimal `package.json` holds ESLint + TypeScript as devDependencies only;
 the shipped `dist/flightradar24-splitflap-card.js` itself stays plain,
-dependency-free JS — HACS still just serves the raw files, no bundling.
+dependency-free JS — the Marketplace serves the raw files, no bundling.
 
 ## Shipped layout
 
-Everything HACS delivers lives in `dist/`:
+Everything the Marketplace delivers lives in `dist/`:
 
 ```
 dist/
   flightradar24-splitflap-card.js
   translations/{en,de,es,fr}.json
+  fonts/JetBrainsMono-Bold-subset.woff2, OFL.txt
 ```
 
-Per the HACS plugin docs, a plugin that needs non-JS files must put *all*
-files (card included) in `dist/` — a single JS file at the repo root would
-be shipped without the translations beside it. Repo-root files
+Releases carry no assets, so the Marketplace installs from the tag archive
+and extracts everything below `dist/`, subfolders included. A single JS file
+at the repo root would be shipped without the files beside it. Repo-root files
 (`README.md`, `package.json`, `scripts/`, …) are development-only and are
 not delivered to users.
 
@@ -150,5 +152,7 @@ not delivered to users.
 ## Documentation upkeep
 
 On behavior changes, update `README.md`, `INSTALLATION.md`,
-`CHANGELOG.md`, `info.md`. Keep German user-facing docs and English
-in-repo dev text consistent in substance.
+`CHANGELOG.md`. The Marketplace renders the README; installation steps and
+install badges stay between `<!-- ha-marketplace:exclude-start -->` and
+`<!-- ha-marketplace:exclude-end -->`, since the Marketplace page has its own
+install button.

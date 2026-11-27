@@ -1,6 +1,8 @@
 # FlightRadar24 Split-Flap Card
 
-[![HACS: custom repository](https://img.shields.io/badge/HACS-Custom-orange?style=flat-square)](https://hacs.xyz/docs/faq/custom_repositories/)
+<!-- ha-marketplace:exclude-start -->
+[![HACS: default catalog](https://img.shields.io/badge/HACS-Default-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=GpsM2&repository=flightradar24-splitflap-card&category=plugin)
+<!-- ha-marketplace:exclude-end -->
 [![GitHub release](https://img.shields.io/github/v/release/GpsM2/flightradar24-splitflap-card?style=flat-square)](https://github.com/GpsM2/flightradar24-splitflap-card/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/GpsM2/flightradar24-splitflap-card/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/GpsM2/flightradar24-splitflap-card/actions/workflows/ci.yml)
 [![HACS validation](https://img.shields.io/github/actions/workflow/status/GpsM2/flightradar24-splitflap-card/validate.yml?branch=main&style=flat-square&label=HACS%20validation)](https://github.com/GpsM2/flightradar24-splitflap-card/actions/workflows/validate.yml)
@@ -45,16 +47,19 @@ as an animated split-flap airport board.
 - [FlightRadar24 integration](https://github.com/AlexandrErohin/home-assistant-flightradar24),
   installed and configured
 
+<!-- ha-marketplace:exclude-start -->
 ## Installation
 
-### HACS (recommended)
+### Marketplace (recommended)
 
-1. Open HACS → **Frontend**
-2. Three-dot menu at the top right → **Custom repositories**
-3. Add the repository URL `https://github.com/GpsM2/flightradar24-splitflap-card`
-   with category **Lovelace**
-4. Search for "FlightRadar24 Split-Flap Card" and install it
-5. Restart Home Assistant
+[![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=GpsM2&repository=flightradar24-splitflap-card&category=plugin)
+
+The card is in the default catalog, so there is no repository to add.
+
+1. Click the badge above, or search for "FlightRadar24 Split-Flap Card" under
+   **Settings** → **Marketplace** (in HACS before Home Assistant 2026.11)
+2. Install it
+3. Reload the browser — a dashboard card doesn't need a Home Assistant restart
 
 ### Manual
 
@@ -70,6 +75,7 @@ as an animated split-flap airport board.
    - URL: `/local/flightradar24-splitflap-card/flightradar24-splitflap-card.js`
    - Resource type: **JavaScript module**
 4. Clear the browser cache (Ctrl+F5)
+<!-- ha-marketplace:exclude-end -->
 
 ## Adding the card
 
